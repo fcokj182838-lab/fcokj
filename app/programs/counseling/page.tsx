@@ -70,7 +70,7 @@ const PROGRAM_SUB_PAGES = [
   { label: "기타사업", href: "/programs/others", english: "Others" },
 ];
 
-export default function CounsellingPage() {
+export default function CounselingPage() {
   return (
     <>
       <PageHero />

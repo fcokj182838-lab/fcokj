@@ -40,7 +40,7 @@ export function SiteHeader() {
     <header
       className={`sticky top-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-[var(--color-cream)]/90 backdrop-blur-md border-b border-[var(--color-line)]"
+          ? "bg-[var(--color-cream)]/70 backdrop-blur-md border-b border-[var(--color-line)]"
           : "bg-transparent"
       }`}
     >
@@ -212,9 +212,15 @@ export function SiteHeader() {
               <li
                 key={section.title}
                 className={`border-b border-[var(--color-line)] pb-4 transition-all duration-700 ${
-                  isMobileOpen ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
+                  isMobileOpen
+                    ? "translate-x-0 opacity-100"
+                    : "translate-x-4 opacity-0"
                 }`}
-                style={{ transitionDelay: isMobileOpen ? `${sectionIndex * 80}ms` : "0ms" }}
+                style={{
+                  transitionDelay: isMobileOpen
+                    ? `${sectionIndex * 80}ms`
+                    : "0ms",
+                }}
               >
                 <div className="flex items-baseline justify-between py-3">
                   <Link
@@ -235,7 +241,9 @@ export function SiteHeader() {
                         className="flex items-center justify-between py-1.5 text-[15px] text-[var(--color-ink-soft)]"
                       >
                         <span>— {item.label}</span>
-                        <span className="text-[var(--color-terracotta)]">→</span>
+                        <span className="text-[var(--color-terracotta)]">
+                          →
+                        </span>
                       </Link>
                     </li>
                   ))}
@@ -264,7 +272,9 @@ export function SiteHeader() {
               <span className="font-[var(--font-display)] text-[11px] uppercase tracking-[0.25em] text-[var(--color-muted)]">
                 Email
               </span>
-              <span className="text-sm text-[var(--color-ink)]">{SITE_INFO.email}</span>
+              <span className="text-sm text-[var(--color-ink)]">
+                {SITE_INFO.email}
+              </span>
             </a>
             <Link
               href="/support"

@@ -47,6 +47,12 @@ export const SITE_MENU: MenuSection[] = [
     ],
   },
   {
+    title: "커뮤니티",
+    englishTitle: "Community",
+    href: "/community",
+    items: [{ label: "커뮤니티", href: "/community", description: "공지 및 소식 안내" }],
+  },
+  {
     title: "후원안내",
     englishTitle: "Support",
     href: "/support",

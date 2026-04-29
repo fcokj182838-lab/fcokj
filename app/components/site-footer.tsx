@@ -39,7 +39,7 @@ export function SiteFooter() {
 
           {/* 우측 - 사이트맵 */}
           <div className="md:col-span-7">
-            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
               {SITE_MENU.map((section) => (
                 <div key={section.title}>
                   <h4 className="mb-4 font-[var(--font-serif)] text-[14px] font-semibold text-[var(--color-cream)]">

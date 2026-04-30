@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
+  type ArticleOpenGraphResult,
   PRESS_GALLERY_PLACEHOLDER_PATH,
   downloadOgImageForUpload,
   fetchOpenGraphForArticleUrl,
@@ -188,12 +189,11 @@ async function uploadGalleryImageBytes(
   return { imageUrl: publicUrlData.publicUrl, imagePath };
 }
 
-/** 기사 URL에서 OG 이미지를 받아 Storage에 저장하거나, 실패 시 플레이스홀더 경로만 반환 */
-async function resolvePressThumbnailFromArticleUrl(
+/** 이미 받아 둔 OG 결과로 Storage 썸네일을 만들거나 플레이스홀더로 대체 */
+async function resolveThumbnailFromOpenGraphResult(
   supabaseAdmin: Awaited<ReturnType<typeof requireAdminUser>>["supabaseAdmin"],
-  articleUrl: string,
+  og: ArticleOpenGraphResult,
 ): Promise<{ imageUrl: string; imagePath: string | null }> {
-  const og = await fetchOpenGraphForArticleUrl(articleUrl);
   for (const imageUrl of og.imageUrls) {
     const downloaded = await downloadOgImageForUpload(imageUrl);
     if (!downloaded) continue;
@@ -208,6 +208,15 @@ async function resolvePressThumbnailFromArticleUrl(
     }
   }
   return { imageUrl: PRESS_GALLERY_PLACEHOLDER_PATH, imagePath: null };
+}
+
+/** 기사 HTML을 한 번 받아 OG 추출 후 썸네일까지 처리 (등록 폼에서 OG 메타 한 번만 요청) */
+async function resolvePressThumbnailFromArticleUrl(
+  supabaseAdmin: Awaited<ReturnType<typeof requireAdminUser>>["supabaseAdmin"],
+  articleUrl: string,
+): Promise<{ imageUrl: string; imagePath: string | null }> {
+  const og = await fetchOpenGraphForArticleUrl(articleUrl);
+  return resolveThumbnailFromOpenGraphResult(supabaseAdmin, og);
 }
 
 /** 제목 최대 길이 (DB check 와 일치) */
@@ -254,7 +263,7 @@ export async function createGalleryPhotoFromAdmin(formData: FormData) {
         }
       })();
 
-    const { imageUrl, imagePath } = await resolvePressThumbnailFromArticleUrl(supabaseAdmin, articleUrl);
+    const { imageUrl, imagePath } = await resolveThumbnailFromOpenGraphResult(supabaseAdmin, og);
 
     const { error: insertError } = await supabaseAdmin.from("gallery_photos").insert({
       title: resolvedTitle,

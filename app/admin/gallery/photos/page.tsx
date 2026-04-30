@@ -76,7 +76,7 @@ export default async function AdminGalleryPhotosListPage({
 
   return (
     <section className="relative bg-[var(--color-ivory)] py-20 lg:py-28">
-      <div className="mx-auto max-w-[1100px] space-y-6 px-6 lg:px-10">
+      <div className="mx-auto max-w-[1200px] space-y-6 px-6 lg:px-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="font-[var(--font-display)] text-[11px] uppercase tracking-[0.3em] text-[var(--color-terracotta)]">
@@ -130,7 +130,7 @@ export default async function AdminGalleryPhotosListPage({
             등록된 사진이 없습니다. 우측 상단의 “새 사진 등록” 버튼으로 첫 사진을 올려보세요.
           </div>
         ) : (
-          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {photos.map((photo) => (
               <li
                 key={photo.id}
@@ -144,7 +144,7 @@ export default async function AdminGalleryPhotosListPage({
                     src={photo.image_url}
                     alt={photo.title}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover"
                   />
                 </Link>

@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
+import { getSupabaseAdminClient } from "./lib/supabase/server";
 import { SITE_INFO } from "./lib/site-config";
 
 // 메인 홈페이지
 // - Hero / 미션 / 4대 사업 / 액티비티 / 후원 CTA / 연락처 섹션 구성
-export default function Home() {
+export default async function Home() {
   return (
     <>
       <HeroSection />
@@ -308,33 +310,63 @@ function ProgramsSection() {
 }
 
 /* ─────────────────────────────────────────────────────────
- *  액티비티 갤러리 미리보기
+ *  액티비티 갤러리 미리보기 (활동사진 DB 최신 6건)
  * ──────────────────────────────────────────────────────── */
-const activities = [
-  {
-    tag: "교육",
-    title: "한국어 회화반 운영",
-    date: "2026.04",
-    description: "초급부터 중급까지 단계별 한국어 회화 교실이 매주 진행됩니다.",
-    accent: "from-[var(--color-terracotta)]/30 to-[var(--color-terracotta-soft)]/15",
-  },
-  {
-    tag: "문화체험",
-    title: "전통문화 한복 체험",
-    date: "2026.03",
-    description: "외국인들이 한국 전통의상을 직접 입어보고 문화를 체험했습니다.",
-    accent: "from-[var(--color-sage)]/35 to-[var(--color-cream)]",
-  },
-  {
-    tag: "봉사단",
-    title: "지역사회 환경정화 활동",
-    date: "2026.02",
-    description: "외국인봉사단이 지역사회와 함께 환경정화 활동에 참여했습니다.",
-    accent: "from-[var(--color-ink)]/25 to-[var(--color-ink)]/5",
-  },
-];
+const HOME_ACTIVITY_PHOTO_LIMIT = 6;
 
-function ActivitiesSection() {
+type HomeActivityPhoto = {
+  id: number;
+  title: string;
+  description: string | null;
+  image_url: string;
+  taken_at: string | null;
+  created_at: string;
+};
+
+/** 홈 노출용: 공개 활동사진만, 갤러리 목록과 동일 정렬 → 최신 6건 */
+async function getLatestHomeActivityPhotos(): Promise<{
+  photos: HomeActivityPhoto[];
+  hasConfig: boolean;
+  hasError: boolean;
+}> {
+  const supabase = getSupabaseAdminClient();
+  if (!supabase) {
+    return { photos: [], hasConfig: false, hasError: false };
+  }
+
+  const { data, error } = await supabase
+    .from("gallery_photos")
+    .select("id, title, description, image_url, taken_at, created_at")
+    .eq("is_published", true)
+    .eq("gallery_kind", "activity")
+    .order("sort_order", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(HOME_ACTIVITY_PHOTO_LIMIT);
+
+  if (error || !data) {
+    return { photos: [], hasConfig: true, hasError: true };
+  }
+
+  return { photos: data as HomeActivityPhoto[], hasConfig: true, hasError: false };
+}
+
+/** 카드 모서리용 짧은 날짜 (촬영일 우선, 없으면 등록일) */
+function formatHomeActivityCardDate(takenAt: string | null, createdAt: string): string {
+  const raw = takenAt ?? createdAt;
+  try {
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${year}.${month}`;
+  } catch {
+    return "";
+  }
+}
+
+async function ActivitiesSection() {
+  const { photos, hasConfig, hasError } = await getLatestHomeActivityPhotos();
+
   return (
     <section className="relative bg-[var(--color-cream-dark)] py-28 lg:py-36">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
@@ -358,45 +390,79 @@ function ActivitiesSection() {
           </Link>
         </div>
 
-        {/* 활동 카드 - 가로 스크롤 가능한 갤러리 그리드 */}
-        <div className="mt-14 grid grid-cols-1 gap-8 md:grid-cols-3">
-          {activities.map((activity, index) => (
-            <article
-              key={activity.title}
-              className="group flex flex-col"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* 이미지 영역 - 그라디언트 플레이스홀더 */}
-              <div
-                className={`relative aspect-[4/5] overflow-hidden bg-gradient-to-br ${activity.accent} transition-transform duration-700 group-hover:-translate-y-2`}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="font-[var(--font-display)] text-[120px] font-light text-[var(--color-ivory)] opacity-40">
-                    0{index + 1}
-                  </span>
-                </div>
-                <div className="absolute left-4 top-4 flex items-center gap-2">
-                  <span className="rounded-full bg-[var(--color-ivory)]/95 px-3 py-1 text-[11px] font-medium tracking-tight text-[var(--color-ink)]">
-                    {activity.tag}
-                  </span>
-                </div>
-                <div className="absolute bottom-4 right-4 font-[var(--font-display)] text-[11px] uppercase tracking-[0.2em] text-[var(--color-ivory)]">
-                  {activity.date}
-                </div>
-              </div>
+        {!hasConfig && (
+          <p className="mt-10 border-l-2 border-[var(--color-terracotta)] bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-ink-soft)]">
+            Supabase 환경변수가 설정되지 않아 활동사진을 불러올 수 없습니다.
+          </p>
+        )}
 
-              {/* 텍스트 영역 */}
-              <div className="mt-6">
-                <h3 className="font-[var(--font-serif)] text-xl font-semibold tracking-tight text-[var(--color-ink)] transition-colors group-hover:text-[var(--color-terracotta)]">
-                  {activity.title}
-                </h3>
-                <p className="mt-2 text-[14px] leading-relaxed text-[var(--color-ink-soft)]">
-                  {activity.description}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
+        {hasError && (
+          <p className="mt-10 border-l-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+            활동사진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+          </p>
+        )}
+
+        {hasConfig && photos.length === 0 && !hasError ? (
+          <div className="mt-14 border border-dashed border-[var(--color-line)] bg-[var(--color-cream)]/80 p-12 text-center">
+            <p className="font-[var(--font-serif)] text-xl text-[var(--color-ink)]">
+              아직 등록된 활동사진이 없습니다
+            </p>
+            <p className="mt-2 text-sm text-[var(--color-muted)]">
+              곧 현장 스토리를 이곳에서 만나보실 수 있습니다.
+            </p>
+          </div>
+        ) : photos.length > 0 ? (
+          <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {photos.map((photo, index) => {
+              const dateLabel = formatHomeActivityCardDate(photo.taken_at, photo.created_at);
+              const descriptionText = photo.description?.trim() ?? "";
+              return (
+                <Link
+                  key={photo.id}
+                  href={`/gallery/photos/${photo.id}`}
+                  className="group flex flex-col"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-ivory)] transition-transform duration-700 group-hover:-translate-y-2">
+                    <Image
+                      src={photo.image_url}
+                      alt={photo.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    />
+                    {/* 이미지 위 텍스트 대비용 그라데이션 */}
+                    <div
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--color-ink)]/55 via-transparent to-[var(--color-ink)]/15"
+                      aria-hidden
+                    />
+                    <div className="absolute left-4 top-4 flex items-center gap-2">
+                      <span className="rounded-full bg-[var(--color-ivory)]/95 px-3 py-1 text-[11px] font-medium tracking-tight text-[var(--color-ink)]">
+                        활동사진
+                      </span>
+                    </div>
+                    {dateLabel ? (
+                      <div className="absolute bottom-4 right-4 font-[var(--font-display)] text-[11px] uppercase tracking-[0.2em] text-[var(--color-ivory)] drop-shadow-sm">
+                        {dateLabel}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-6">
+                    <h3 className="font-[var(--font-serif)] text-xl font-semibold tracking-tight text-[var(--color-ink)] transition-colors group-hover:text-[var(--color-terracotta)]">
+                      {photo.title}
+                    </h3>
+                    {descriptionText ? (
+                      <p className="mt-2 line-clamp-3 text-[14px] leading-relaxed text-[var(--color-ink-soft)]">
+                        {descriptionText}
+                      </p>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </section>
   );

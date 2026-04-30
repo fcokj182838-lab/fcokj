@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { parseCommunityAttachmentsFromDb } from "../lib/community-attachments";
 import { getSupabaseAdminClient } from "../lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -7,19 +8,13 @@ export const metadata: Metadata = {
   description: "사단법인 외국인과 동행 커뮤니티 게시글 목록입니다.",
 };
 
-// 첨부파일 한 건의 메타데이터 (DB 의 attachments jsonb 배열 요소 형태)
-type CommunityAttachment = {
-  name?: string;
-  url?: string;
-  size?: number;
-};
-
 type CommunityPostRow = {
   id: number;
   title: string;
   created_at: string;
   view_count: number | null;
-  attachments: CommunityAttachment[] | null;
+  /** jsonb — 파싱은 parseCommunityAttachmentsFromDb 에 위임 */
+  attachments: unknown;
 };
 
 type FetchResult = {
@@ -140,10 +135,9 @@ function formatPostDate(value: string): string {
   });
 }
 
-/** 첨부파일 개수를 안전하게 추출 */
-function getAttachmentCount(attachments: CommunityAttachment[] | null): number {
-  if (!Array.isArray(attachments)) return 0;
-  return attachments.length;
+/** 첨부파일 개수를 안전하게 추출 (문자열 JSON·레거시 키 포함) */
+function getAttachmentCount(attachments: unknown): number {
+  return parseCommunityAttachmentsFromDb(attachments).length;
 }
 
 export default async function CommunityPage({

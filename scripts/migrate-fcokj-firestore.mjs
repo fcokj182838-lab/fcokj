@@ -13,6 +13,9 @@
  *   node scripts/migrate-fcokj-firestore.mjs --only notices
  *   node scripts/migrate-fcokj-firestore.mjs --only activities
  *   node scripts/migrate-fcokj-firestore.mjs --no-title-prefix
+ *
+ * 커뮤니티 전체 삭제 후 notices 만 다시 넣기 (기존 글·상태 초기화):
+ *   node scripts/migrate-fcokj-firestore.mjs --only notices --delete-all-community-posts --yes
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -70,6 +73,47 @@ function unwrapFirestoreValue(field) {
   if ("booleanValue" in field) return field.booleanValue;
   if ("timestampValue" in field) return field.timestampValue;
   return undefined;
+}
+
+/**
+ * Firestore 문서에서 첨부 URL 목록 추출 (단일 문자열·배열·대체 필드명)
+ * @param {Record<string, unknown>} fields Firestore document.fields
+ * @returns {string[]}
+ */
+function collectLegacyAttachmentUrls(fields) {
+  if (!fields || typeof fields !== "object") return [];
+
+  /** @type {string[]} */
+  const out = [];
+  const pushHttp = (value) => {
+    if (typeof value !== "string") return;
+    const trimmed = value.trim();
+    if (trimmed.startsWith("http")) out.push(trimmed);
+  };
+
+  const singleField =
+    fields.attachmentUrl ?? fields.attachment_url ?? fields.fileUrl ?? fields.file_url;
+  if (singleField && typeof singleField === "object") {
+    const unwrapped = unwrapFirestoreValue(singleField);
+    pushHttp(unwrapped);
+    if ("arrayValue" in singleField && singleField.arrayValue?.values) {
+      for (const v of singleField.arrayValue.values) {
+        pushHttp(unwrapFirestoreValue(v));
+      }
+    }
+  }
+
+  const listField = fields.attachmentUrls ?? fields.files;
+  if (listField && typeof listField === "object" && "arrayValue" in listField) {
+    const values = listField.arrayValue?.values;
+    if (Array.isArray(values)) {
+      for (const v of values) {
+        pushHttp(unwrapFirestoreValue(v));
+      }
+    }
+  }
+
+  return [...new Set(out)];
 }
 
 /** 문서 이름에서 컬렉션과 문서 ID 추출 (경로: .../documents/{collectionId}/{docId}) */
@@ -298,17 +342,28 @@ function saveState(state) {
 function parseArgs(argv) {
   const dryRun = argv.includes("--dry-run");
   const noTitlePrefix = argv.includes("--no-title-prefix");
+  const deleteAllCommunityPosts = argv.includes("--delete-all-community-posts");
+  const confirmYes = argv.includes("--yes");
   let only = null;
   const oi = argv.indexOf("--only");
   if (oi !== -1 && argv[oi + 1]) {
     only = argv[oi + 1];
   }
-  return { dryRun, noTitlePrefix, only };
+  return { dryRun, noTitlePrefix, only, deleteAllCommunityPosts, confirmYes };
 }
 
 function main() {
   loadEnvFile();
-  const { dryRun, noTitlePrefix, only } = parseArgs(process.argv.slice(2));
+  const { dryRun, noTitlePrefix, only, deleteAllCommunityPosts, confirmYes } = parseArgs(
+    process.argv.slice(2),
+  );
+
+  if (deleteAllCommunityPosts && !confirmYes) {
+    console.error(
+      "--delete-all-community-posts 는 실수 방지를 위해 같은 명령에 --yes 가 필요합니다.",
+    );
+    process.exit(1);
+  }
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -338,6 +393,23 @@ function main() {
   (async () => {
     let totalInserted = 0;
 
+    if (deleteAllCommunityPosts) {
+      if (dryRun) {
+        console.log("[dry-run] community_posts 전체 삭제 및 상태 초기화 생략");
+      } else {
+        console.log("\n=== Supabase community_posts 전체 삭제 중… ===");
+        const { error: delErr } = await supabase.from("community_posts").delete().neq("id", 0);
+        if (delErr) {
+          console.error("삭제 실패:", delErr.message);
+          process.exit(1);
+        }
+        const cleared = { migratedKeys: [] };
+        saveState(cleared);
+        migratedSet.clear();
+        console.log("삭제 완료. migrate-fcokj-state.json 의 migratedKeys 를 비웠습니다.");
+      }
+    }
+
     for (const task of tasks) {
       console.log(`\n=== Firestore "${task.id}" 조회 중… ===`);
       const docs = await fetchFirestoreCollection(task.id);
@@ -356,7 +428,7 @@ function main() {
         const contentRaw = unwrapFirestoreValue(fields.content) ?? "";
         const createdAtMs = unwrapFirestoreValue(fields.createdAt);
         const viewsRaw = unwrapFirestoreValue(fields.views);
-        const attachmentUrl = unwrapFirestoreValue(fields.attachmentUrl);
+        const attachmentUrls = collectLegacyAttachmentUrls(fields);
 
         const titleBase = String(titleRaw).replace(/^\s+/, "").trim();
         const title =
@@ -380,10 +452,19 @@ function main() {
         console.log(`→ ${key} | ${titleBase.slice(0, 60)}${titleBase.length > 60 ? "…" : ""}`);
 
         let attachments = [];
-        if (attachmentUrl && supabase) {
-          attachments = await buildAttachmentMeta(supabase, collectionId, docId, attachmentUrl);
-        } else if (attachmentUrl && dryRun) {
-          console.log(`  [dry-run] 첨부 URL 있음 (업로드 생략)`);
+        if (attachmentUrls.length > 0 && supabase) {
+          for (let urlIndex = 0; urlIndex < attachmentUrls.length; urlIndex += 1) {
+            const oneUrl = attachmentUrls[urlIndex];
+            const metas = await buildAttachmentMeta(
+              supabase,
+              collectionId,
+              attachmentUrls.length > 1 ? `${docId}-${urlIndex}` : docId,
+              oneUrl,
+            );
+            attachments.push(...metas);
+          }
+        } else if (attachmentUrls.length > 0 && dryRun) {
+          console.log(`  [dry-run] 첨부 URL ${attachmentUrls.length}건 (업로드 생략)`);
         }
 
         const row = {
@@ -401,7 +482,8 @@ function main() {
           console.log("  [dry-run] insert 생략", {
             created_at: row.created_at,
             view_count: row.view_count,
-            attachments: attachments.length,
+            // dry-run 에서는 Storage 업로드를 생략하므로 URL 건수로 표시
+            attachmentUrlCount: attachmentUrls.length,
           });
         } else {
           const { error } = await supabase.from("community_posts").insert(row);

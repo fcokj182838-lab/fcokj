@@ -41,6 +41,7 @@ const ALLOWED_IMAGE_MIME = new Set([
   "image/webp",
   "image/avif",
   "image/gif",
+  "image/bmp",
 ]);
 
 const STATE_PATH = join(__dirname, "migrate-gallery-activities-state.json");
@@ -113,8 +114,42 @@ function guessExtFromMime(mime) {
     "image/gif": "gif",
     "image/webp": "webp",
     "image/avif": "avif",
+    "image/bmp": "bmp",
+    "image/x-ms-bmp": "bmp",
   };
   return map[base] ?? "jpg";
+}
+
+/**
+ * Content-Type 이 불명확할 때(Octet-Stream 등) 바이트 시그니처로 이미지 MIME 추론
+ * @returns {string | null} 허용 목록에 없으면 null
+ */
+function sniffImageMimeFromBuffer(buffer) {
+  if (!buffer || buffer.length < 12) return null;
+  const b0 = buffer[0];
+  const b1 = buffer[1];
+  if (b0 === 0xff && b1 === 0xd8) return "image/jpeg";
+  if (b0 === 0x89 && b1 === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return "image/png";
+  if (b0 === 0x47 && b1 === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) return "image/gif";
+  if (b0 === 0x42 && b1 === 0x4d) return "image/bmp";
+  if (b0 === 0x52 && b1 === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+    if (buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) return "image/webp";
+  }
+  if (buffer.length >= 12) {
+    const ftypBox = buffer.slice(4, 8).toString("ascii");
+    const brand = buffer.slice(8, 12).toString("ascii");
+    if (ftypBox === "ftyp" && brand === "avif") return "image/avif";
+  }
+  return null;
+}
+
+/** 헤더 MIME 과 본문 시그니처를 합쳐 최종 MIME 결정 */
+function resolveImageMime(buffer, headerMimeRaw) {
+  const headerMime = (headerMimeRaw ?? "application/octet-stream").toLowerCase().split(";")[0].trim();
+  if (ALLOWED_IMAGE_MIME.has(headerMime)) return headerMime;
+  const sniffed = sniffImageMimeFromBuffer(buffer);
+  if (sniffed && ALLOWED_IMAGE_MIME.has(sniffed)) return sniffed;
+  return null;
 }
 
 function isoDateOnlyFromMs(ms) {
@@ -181,10 +216,11 @@ async function downloadAndUploadToGallery(supabase, docId, attachmentUrl) {
     return null;
   }
 
-  const mimeHeader = response.headers.get("content-type") ?? "image/jpeg";
-  const mime = mimeHeader.toLowerCase().split(";")[0].trim();
-  if (!ALLOWED_IMAGE_MIME.has(mime)) {
-    console.warn(`  [건너뜀] 갤러리 미지원 MIME: ${mime}`);
+  const mimeHeader = response.headers.get("content-type") ?? "";
+  const mime = resolveImageMime(buffer, mimeHeader);
+  if (!mime) {
+    const declared = mimeHeader.toLowerCase().split(";")[0].trim() || "(없음)";
+    console.warn(`  [건너뜀] 갤러리 미지원 또는 시그니처 불일치: ${declared}`);
     return null;
   }
 

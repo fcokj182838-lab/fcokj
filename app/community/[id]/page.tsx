@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  parseCommunityAttachmentsFromDb,
+  type CommunityAttachmentDisplay,
+} from "../../lib/community-attachments";
 import { getSupabaseAdminClient } from "../../lib/supabase/server";
-
-// 첨부파일 한 건의 메타데이터 (DB 의 attachments jsonb 배열 요소 형태)
-type CommunityAttachment = {
-  name?: string;
-  url?: string;
-  size?: number;
-};
 
 type CommunityPostDetail = {
   id: number;
@@ -17,7 +14,7 @@ type CommunityPostDetail = {
   created_at: string;
   updated_at: string;
   view_count: number | null;
-  attachments: CommunityAttachment[] | null;
+  attachments: unknown;
 };
 
 type PageProps = {
@@ -117,7 +114,9 @@ export default async function CommunityPostDetailPage({ params, searchParams }: 
   await incrementViewCount(postId);
   const displayedViewCount = (post.view_count ?? 0) + 1;
 
-  const attachments = Array.isArray(post.attachments) ? post.attachments : [];
+  const attachments: CommunityAttachmentDisplay[] = parseCommunityAttachmentsFromDb(
+    post.attachments,
+  );
 
   return (
     <section className="relative bg-[var(--color-ivory)] py-20 lg:py-28">
@@ -173,23 +172,19 @@ export default async function CommunityPostDetailPage({ params, searchParams }: 
 
                   return (
                     <li
-                      key={`${fileName}-${index}`}
+                      key={`${file.url}-${index}`}
                       className="flex items-center justify-between gap-3 border border-[var(--color-line)] bg-[var(--color-ivory)] px-4 py-3 text-sm"
                     >
                       <div className="flex min-w-0 items-center gap-2 text-[var(--color-ink)]">
                         <PaperclipIcon />
-                        {file.url ? (
-                          <a
-                            href={file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="truncate underline decoration-[var(--color-line)] underline-offset-2 hover:text-[var(--color-terracotta)]"
-                          >
-                            {fileName}
-                          </a>
-                        ) : (
-                          <span className="truncate">{fileName}</span>
-                        )}
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="truncate underline decoration-[var(--color-line)] underline-offset-2 hover:text-[var(--color-terracotta)]"
+                        >
+                          {fileName}
+                        </a>
                       </div>
                       {sizeLabel && (
                         <span className="shrink-0 text-xs text-[var(--color-muted)]">{sizeLabel}</span>

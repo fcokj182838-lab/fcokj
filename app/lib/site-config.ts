@@ -19,44 +19,92 @@ export const SITE_MENU: MenuSection[] = [
     englishTitle: "About",
     href: "/about",
     items: [
-      { label: "인사말", href: "/about", description: "이사장이 전하는 인사말" },
+      {
+        label: "인사말",
+        href: "/about",
+        description: "이사장이 전하는 인사말",
+      },
       { label: "연혁", href: "/about/history", description: "걸어온 발자취" },
-      { label: "시설현황", href: "/about/facilities", description: "교육장 및 시설 안내" },
-      { label: "찾아오시는 길", href: "/about/location", description: "오시는 길 안내" },
+      {
+        label: "시설현황",
+        href: "/about/facilities",
+        description: "교육장 및 시설 안내",
+      },
+      {
+        label: "찾아오시는 길",
+        href: "/about/location",
+        description: "오시는 길 안내",
+      },
     ],
   },
   {
     title: "법인사업",
     englishTitle: "Programs",
-    href: "/programs",
+    href: "/programs/counseling",
     items: [
-      { label: "상담사업", href: "/programs/counseling", description: "고충·애로사항 상담" },
-      { label: "교육사업", href: "/programs/education", description: "한국어 및 능력향상 교육" },
-      { label: "외국인봉사단", href: "/programs/volunteers", description: "지역사회 공생 봉사단" },
-      { label: "문화체험", href: "/programs/culture", description: "한국문화 이해 프로그램" },
-      { label: "기타사업", href: "/programs/others", description: "그 외 다양한 활동" },
+      {
+        label: "상담사업",
+        href: "/programs/counseling",
+        description: "고충·애로사항 상담",
+      },
+      {
+        label: "교육사업",
+        href: "/programs/education",
+        description: "한국어 및 능력향상 교육",
+      },
+      {
+        label: "외국인봉사단",
+        href: "/programs/volunteers",
+        description: "지역사회 공생 봉사단",
+      },
+      {
+        label: "문화체험",
+        href: "/programs/culture",
+        description: "한국문화 이해 프로그램",
+      },
+      {
+        label: "기타사업",
+        href: "/programs/others",
+        description: "그 외 다양한 활동",
+      },
     ],
   },
   {
     title: "활동사진",
     englishTitle: "Gallery",
-    href: "/gallery",
+    href: "/gallery/photos",
     items: [
       { label: "사진", href: "/gallery/photos", description: "활동 사진 모음" },
-      { label: "언론에 비친 법인", href: "/gallery/press", description: "언론 보도 자료" },
+      {
+        label: "언론에 비친 법인",
+        href: "/gallery/press",
+        description: "언론 보도 자료",
+      },
     ],
   },
   {
     title: "커뮤니티",
     englishTitle: "Community",
     href: "/community",
-    items: [{ label: "커뮤니티", href: "/community", description: "공지 및 소식 안내" }],
+    items: [
+      {
+        label: "커뮤니티",
+        href: "/community",
+        description: "공지 및 소식 안내",
+      },
+    ],
   },
   {
     title: "후원안내",
     englishTitle: "Support",
     href: "/support",
-    items: [{ label: "후원안내", href: "/support", description: "함께하는 따뜻한 동행" }],
+    items: [
+      {
+        label: "후원안내",
+        href: "/support",
+        description: "함께하는 따뜻한 동행",
+      },
+    ],
   },
 ];
 

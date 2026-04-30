@@ -34,14 +34,15 @@ function resolveGalleryNotice(
     }
   }
 
-  return Object.entries(params)
+  const fromQuery = Object.entries(params)
     .map(([key, value]) => {
       if (value === undefined) return null;
       const v = Array.isArray(value) ? value[0] : value;
       if (!v) return null;
       return noticeMap[`${key}=${v}`] ?? null;
     })
-    .find(Boolean);
+    .find((msg): msg is string => typeof msg === "string");
+  return fromQuery;
 }
 
 type GalleryPhotoRow = {
@@ -52,6 +53,7 @@ type GalleryPhotoRow = {
   sort_order: number;
   is_published: boolean;
   created_at: string;
+  gallery_kind: string | null;
 };
 
 export default async function AdminGalleryPhotosListPage({
@@ -64,7 +66,7 @@ export default async function AdminGalleryPhotosListPage({
 
   const { data, error } = await supabaseAdmin
     .from("gallery_photos")
-    .select("id, title, image_url, taken_at, sort_order, is_published, created_at")
+    .select("id, title, image_url, taken_at, sort_order, is_published, created_at, gallery_kind")
     .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -83,14 +85,22 @@ export default async function AdminGalleryPhotosListPage({
             <h1 className="mt-2 font-[var(--font-serif)] text-3xl font-medium tracking-[-0.02em] text-[var(--color-ink)] md:text-5xl">
               갤러리 사진
             </h1>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">활동사진 등록 · 수정 · 삭제 (Supabase Storage)</p>
+            <p className="mt-2 text-sm text-[var(--color-muted)]">
+              활동사진·언론 자료 등록 · 수정 · 삭제 (Supabase Storage)
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/admin/gallery/photos/new"
               className="bg-[var(--color-terracotta)] px-4 py-2 text-sm font-semibold text-[var(--color-ivory)]"
             >
-              새 사진 등록
+              새 활동사진
+            </Link>
+            <Link
+              href="/admin/gallery/photos/new?kind=press"
+              className="border border-[var(--color-terracotta)] bg-transparent px-4 py-2 text-sm font-semibold text-[var(--color-terracotta)]"
+            >
+              새 언론 자료
             </Link>
             <Link href="/admin" className="text-sm text-[var(--color-terracotta)] underline">
               대시보드
@@ -146,15 +156,22 @@ export default async function AdminGalleryPhotosListPage({
                     >
                       {photo.title}
                     </Link>
-                    {photo.is_published ? (
-                      <span className="shrink-0 rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
-                        공개
-                      </span>
-                    ) : (
-                      <span className="shrink-0 rounded-full border border-[var(--color-line)] bg-[var(--color-ivory)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-muted)]">
-                        비공개
-                      </span>
-                    )}
+                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+                      {photo.gallery_kind === "press" && (
+                        <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-800">
+                          언론
+                        </span>
+                      )}
+                      {photo.is_published ? (
+                        <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700">
+                          공개
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-ivory)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-muted)]">
+                          비공개
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <dl className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-muted)]">
                     <div className="flex gap-1">
@@ -186,11 +203,15 @@ export default async function AdminGalleryPhotosListPage({
         )}
 
         <p className="text-xs text-[var(--color-muted)]">
-          공개 사진만{" "}
+          공개 항목만{" "}
           <Link href="/gallery/photos" className="text-[var(--color-terracotta)] underline">
-            활동사진 페이지
+            활동사진
           </Link>
-          에 표시됩니다.
+          ·
+          <Link href="/gallery/press" className="text-[var(--color-terracotta)] underline">
+            언론
+          </Link>
+          페이지에 표시됩니다. (구분은 등록·수정에서 설정)
         </p>
       </div>
     </section>

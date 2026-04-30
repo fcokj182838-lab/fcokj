@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 };
 
 const noticeMap: Record<string, string> = {
-  "error=invalid": "제목과 이미지 파일을 한 장 이상 선택해 주세요.",
+  "error=invalid": "필수 항목을 확인해 주세요. (활동사진: 제목·이미지 / 언론: 기사 링크)",
+  "error=press_url": "기사 링크를 http 또는 https 주소로 입력해 주세요.",
   "error=too_many": "한 번에 올릴 수 있는 사진은 최대 30장입니다.",
   "error=upload": "이미지 업로드에 실패했습니다. (jpg/png/webp/avif/gif · 장당 8MB 이하)",
   "error=insert": "등록 중 오류가 발생했습니다.",
@@ -24,6 +25,10 @@ export default async function AdminGalleryPhotoNewPage({
 }) {
   await requireAdminUser();
   const params = await searchParams;
+
+  const kindParam = params.kind;
+  const kindStr = Array.isArray(kindParam) ? kindParam[0] : kindParam;
+  const isPressKind = kindStr === "press";
 
   const noticeMessage = Object.entries(params)
     .map(([key, value]) => {
@@ -43,7 +48,7 @@ export default async function AdminGalleryPhotoNewPage({
               ─ New photo
             </p>
             <h1 className="mt-2 font-[var(--font-serif)] text-3xl font-medium text-[var(--color-ink)] md:text-4xl">
-              새 사진 등록
+              {isPressKind ? "새 언론 자료 등록 (기사 링크)" : "새 활동사진 등록"}
             </h1>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
@@ -69,15 +74,43 @@ export default async function AdminGalleryPhotoNewPage({
 
         <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-6">
           <form action={createGalleryPhotoFromAdmin} className="grid gap-4">
+            {/* 언론 등록 시에만 press 로 저장 (기본 activity) */}
+            <input type="hidden" name="gallery_kind" value={isPressKind ? "press" : "activity"} />
+
+            {isPressKind ? (
+              <label className="grid gap-1 text-sm">
+                <span className="text-[var(--color-ink-soft)]">기사 링크 *</span>
+                <input
+                  type="url"
+                  name="article_url"
+                  required
+                  inputMode="url"
+                  autoComplete="url"
+                  maxLength={2000}
+                  className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
+                  placeholder="https:// … 보도가 나온 기사 주소"
+                />
+                <span className="text-xs text-[var(--color-muted)]">
+                  등록 시 기사 페이지에서 대표 이미지(OG)를 가져와 썸네일로 저장합니다. 가져오기에 실패하면 기본 이미지가 사용됩니다.
+                </span>
+              </label>
+            ) : null}
+
             <label className="grid gap-1 text-sm">
-              <span className="text-[var(--color-ink-soft)]">제목 *</span>
+              <span className="text-[var(--color-ink-soft)]">
+                {isPressKind ? "표시 제목 (선택)" : "제목 *"}
+              </span>
               <input
                 type="text"
                 name="title"
-                required
+                required={!isPressKind}
                 maxLength={200}
                 className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
-                placeholder="예: 2026 봄 한국어 교실 수료식"
+                placeholder={
+                  isPressKind
+                    ? "비우면 기사 미리보기 제목(og:title)을 사용합니다"
+                    : "예: 2026 봄 한국어 교실 수료식"
+                }
               />
             </label>
 
@@ -88,7 +121,9 @@ export default async function AdminGalleryPhotoNewPage({
                 rows={4}
                 maxLength={2000}
                 className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
-                placeholder="사진에 대한 간단한 설명 (선택)"
+                placeholder={
+                  isPressKind ? "카드에 함께 보여줄 짧은 메모 (선택)" : "사진에 대한 간단한 설명 (선택)"
+                }
               />
             </label>
 
@@ -116,19 +151,23 @@ export default async function AdminGalleryPhotoNewPage({
               </label>
             </div>
 
-            <div className="grid gap-1 text-sm">
-              <span className="text-[var(--color-ink-soft)]">
-                이미지 파일 * (여러 장 선택 가능)
-                <span className="ml-1 text-xs text-[var(--color-muted)]">
-                  jpg/png/webp/avif/gif · 장당 최대 8MB · 한 번에 최대 30장
+            {isPressKind ? null : (
+              <div className="grid gap-1 text-sm">
+                <span className="text-[var(--color-ink-soft)]">
+                  이미지 파일 * (여러 장 선택 가능)
+                  <span className="ml-1 text-xs text-[var(--color-muted)]">
+                    jpg/png/webp/avif/gif · 장당 최대 8MB · 한 번에 최대 30장
+                  </span>
                 </span>
-              </span>
-              <GalleryPhotoImageField />
-            </div>
+                <GalleryPhotoImageField />
+              </div>
+            )}
 
             <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-ink-soft)]">
               <input type="checkbox" name="is_published" defaultChecked className="size-4 accent-[var(--color-terracotta)]" />
-              공개 (방문자 활동사진 페이지에 표시)
+              {isPressKind
+                ? "공개 (방문자 언론 페이지에 표시)"
+                : "공개 (방문자 활동사진 페이지에 표시)"}
             </label>
 
             <div className="flex flex-wrap gap-3">

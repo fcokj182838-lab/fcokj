@@ -27,6 +27,7 @@ async function getPublishedPhotos() {
     .from("gallery_photos")
     .select("id, title, description, image_url, taken_at, created_at")
     .eq("is_published", true)
+    .eq("gallery_kind", "activity")
     .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(60);
@@ -101,37 +102,39 @@ export default async function PhotosPage({
             {photos.map((photo) => {
               const dateLabel = formatPhotoDate(photo.taken_at, photo.created_at);
               return (
-                <li
-                  key={photo.id}
-                  className="group flex flex-col overflow-hidden border border-[var(--color-line)] bg-[var(--color-cream)] transition-all duration-300 hover:border-[var(--color-terracotta)] hover:shadow-[0_18px_40px_-18px_rgba(26,35,50,0.18)]"
-                >
-                  {/* 카드 이미지 */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-ivory)]">
-                    <Image
-                      src={photo.image_url}
-                      alt={photo.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
-                  </div>
+                <li key={photo.id} className="h-full">
+                  <Link
+                    href={`/gallery/photos/${photo.id}`}
+                    className="group flex h-full flex-col overflow-hidden border border-[var(--color-line)] bg-[var(--color-cream)] transition-all duration-300 hover:border-[var(--color-terracotta)] hover:shadow-[0_18px_40px_-18px_rgba(26,35,50,0.18)]"
+                  >
+                    {/* 카드 이미지 */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-ivory)]">
+                      <Image
+                        src={photo.image_url}
+                        alt={photo.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                      />
+                    </div>
 
-                  {/* 카드 본문 */}
-                  <div className="flex flex-1 flex-col gap-3 p-5">
-                    {dateLabel && (
-                      <p className="font-[var(--font-display)] text-[10px] uppercase tracking-[0.25em] text-[var(--color-muted)]">
-                        {dateLabel}
-                      </p>
-                    )}
-                    <h2 className="font-[var(--font-serif)] text-xl leading-snug text-[var(--color-ink)]">
-                      {photo.title}
-                    </h2>
-                    {photo.description && (
-                      <p className="line-clamp-3 text-sm leading-relaxed text-[var(--color-ink-soft)]">
-                        {photo.description}
-                      </p>
-                    )}
-                  </div>
+                    {/* 카드 본문 */}
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      {dateLabel && (
+                        <p className="font-[var(--font-display)] text-[10px] uppercase tracking-[0.25em] text-[var(--color-muted)]">
+                          {dateLabel}
+                        </p>
+                      )}
+                      <h2 className="font-[var(--font-serif)] text-xl leading-snug text-[var(--color-ink)] underline decoration-transparent decoration-2 underline-offset-2 transition-colors group-hover:decoration-[var(--color-terracotta)] group-hover:text-[var(--color-terracotta)]">
+                        {photo.title}
+                      </h2>
+                      {photo.description && (
+                        <p className="line-clamp-3 text-sm leading-relaxed text-[var(--color-ink-soft)]">
+                          {photo.description}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
                 </li>
               );
             })}

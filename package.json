@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "migrate:fcokj": "node scripts/migrate-fcokj-firestore.mjs",
-    "migrate:fcokj:dry-run": "node scripts/migrate-fcokj-firestore.mjs --dry-run"
+    "migrate:fcokj:dry-run": "node scripts/migrate-fcokj-firestore.mjs --dry-run",
+    "migrate:gallery:activities": "node scripts/migrate-fcokj-activities-to-gallery.mjs",
+    "migrate:gallery:activities:dry-run": "node scripts/migrate-fcokj-activities-to-gallery.mjs --dry-run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",

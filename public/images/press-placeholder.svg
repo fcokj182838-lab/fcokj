@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="0¬ tøÀ ÆL">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f0e8"/>
+      <stop offset="100%" style="stop-color:#ebe3d6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g fill="none" stroke="#b85c4a" stroke-width="2" opacity="0.45">
+    <rect x="180" y="140" width="440" height="320" rx="4"/>
+    <line x1="220" y1="200" x2="580" y2="200"/>
+    <line x1="220" y1="240" x2="520" y2="240"/>
+    <line x1="220" y1="280" x2="560" y2="280"/>
+    <line x1="220" y1="360" x2="400" y2="360"/>
+  </g>
+  <text x="400" y="500" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#6b5c4c" opacity="0.7">Press</text>
+</svg>

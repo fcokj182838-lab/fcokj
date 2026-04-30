@@ -21,22 +21,29 @@ const noticeMap: Record<string, string> = {
 async function getDashboardSummary() {
   const supabase = getSupabaseAdminClient();
   if (!supabase) {
-    return { hasConfig: false, totalPosts: 0, latestPosts: [] as { id: number; title: string; created_at: string }[] };
+    return {
+      hasConfig: false,
+      totalPosts: 0,
+      totalPhotos: 0,
+      latestPosts: [] as { id: number; title: string; created_at: string }[],
+    };
   }
 
-  const [{ count }, { data }] = await Promise.all([
+  const [{ count: postsCount }, { data: latestPosts }, { count: photosCount }] = await Promise.all([
     supabase.from("community_posts").select("*", { count: "exact", head: true }),
     supabase
       .from("community_posts")
       .select("id, title, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
+    supabase.from("gallery_photos").select("*", { count: "exact", head: true }),
   ]);
 
   return {
     hasConfig: true,
-    totalPosts: count ?? 0,
-    latestPosts: (data ?? []) as { id: number; title: string; created_at: string }[],
+    totalPosts: postsCount ?? 0,
+    totalPhotos: photosCount ?? 0,
+    latestPosts: (latestPosts ?? []) as { id: number; title: string; created_at: string }[],
   };
 }
 
@@ -113,7 +120,7 @@ export default async function AdminPage({
           )}
 
           {summary.hasConfig && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-5">
                 <p className="font-[var(--font-display)] text-[10px] uppercase tracking-[0.25em] text-[var(--color-muted)]">
                   Community Posts
@@ -125,7 +132,21 @@ export default async function AdminPage({
                   href="/admin/community"
                   className="mt-4 inline-block text-sm font-medium text-[var(--color-terracotta)] underline"
                 >
-                  커뮤니티 게시글 관리 (목록 · 작성 · 수정 · 삭제) →
+                  커뮤니티 게시글 관리 →
+                </Link>
+              </article>
+              <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-5">
+                <p className="font-[var(--font-display)] text-[10px] uppercase tracking-[0.25em] text-[var(--color-muted)]">
+                  Gallery Photos
+                </p>
+                <p className="mt-2 font-[var(--font-display)] text-4xl text-[var(--color-ink)]">
+                  {summary.totalPhotos}
+                </p>
+                <Link
+                  href="/admin/gallery/photos"
+                  className="mt-4 inline-block text-sm font-medium text-[var(--color-terracotta)] underline"
+                >
+                  활동사진 관리 →
                 </Link>
               </article>
               <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-5">
@@ -136,11 +157,14 @@ export default async function AdminPage({
                   <Link href="/admin/community/new" className="text-[var(--color-terracotta)] underline">
                     새 커뮤니티 글 작성
                   </Link>
-                  <Link href="/community" className="text-[var(--color-terracotta)] underline">
-                    커뮤니티 페이지 (방문자 보기)
+                  <Link href="/admin/gallery/photos/new" className="text-[var(--color-terracotta)] underline">
+                    새 활동사진 등록
                   </Link>
-                  <Link href="/" className="text-[var(--color-ink-soft)] underline">
-                    메인 페이지 이동
+                  <Link href="/gallery/photos" className="text-[var(--color-terracotta)] underline">
+                    활동사진 페이지 (방문자 보기)
+                  </Link>
+                  <Link href="/community" className="text-[var(--color-ink-soft)] underline">
+                    커뮤니티 페이지 (방문자 보기)
                   </Link>
                 </div>
               </article>

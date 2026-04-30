@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:fcokj": "node scripts/migrate-fcokj-firestore.mjs",
+    "migrate:fcokj:dry-run": "node scripts/migrate-fcokj-firestore.mjs --dry-run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",

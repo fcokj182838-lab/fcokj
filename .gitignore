@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 로컬 마이그레이션 진행 상태 (재실행 시 건너뜀 목록)
+/scripts/migrate-fcokj-state.json

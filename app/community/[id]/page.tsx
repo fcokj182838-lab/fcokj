@@ -30,13 +30,17 @@ function parsePostId(rawId: string): number | null {
 }
 
 /** 게시글 단건 조회. 비공개/존재하지 않음/Supabase 미설정은 모두 null 로 통일 */
-async function getCommunityPostById(postId: number): Promise<CommunityPostDetail | null> {
+async function getCommunityPostById(
+  postId: number,
+): Promise<CommunityPostDetail | null> {
   const supabase = getSupabaseAdminClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from("community_posts")
-    .select("id, title, content, created_at, updated_at, view_count, attachments")
+    .select(
+      "id, title, content, created_at, updated_at, view_count, attachments",
+    )
     .eq("id", postId)
     .eq("is_published", true)
     .maybeSingle();
@@ -78,7 +82,9 @@ function formatFileSize(size?: number): string | null {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { id: rawId } = await params;
   const postId = parsePostId(rawId);
   if (postId === null) {
@@ -96,7 +102,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CommunityPostDetailPage({ params, searchParams }: PageProps) {
+export default async function CommunityPostDetailPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { id: rawId } = await params;
   await searchParams;
 
@@ -114,9 +123,8 @@ export default async function CommunityPostDetailPage({ params, searchParams }: 
   await incrementViewCount(postId);
   const displayedViewCount = (post.view_count ?? 0) + 1;
 
-  const attachments: CommunityAttachmentDisplay[] = parseCommunityAttachmentsFromDb(
-    post.attachments,
-  );
+  const attachments: CommunityAttachmentDisplay[] =
+    parseCommunityAttachmentsFromDb(post.attachments);
 
   return (
     <section className="relative bg-[var(--color-ivory)] py-20 lg:py-28">
@@ -133,22 +141,38 @@ export default async function CommunityPostDetailPage({ params, searchParams }: 
           {/* 메타 정보: 작성일 · 조회수 · 첨부파일 수 */}
           <dl className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-[var(--color-muted)]">
             <div className="flex items-center gap-1.5">
-              <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">작성일</dt>
-              <dd className="text-[var(--color-ink-soft)]">{formatDate(post.created_at)}</dd>
+              <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">
+                작성일
+              </dt>
+              <dd className="text-[var(--color-ink-soft)]">
+                {formatDate(post.created_at)}
+              </dd>
             </div>
             {post.updated_at !== post.created_at && (
               <div className="flex items-center gap-1.5">
-                <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">수정일</dt>
-                <dd className="text-[var(--color-ink-soft)]">{formatDate(post.updated_at)}</dd>
+                <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">
+                  수정일
+                </dt>
+                <dd className="text-[var(--color-ink-soft)]">
+                  {formatDate(post.updated_at)}
+                </dd>
               </div>
             )}
             <div className="flex items-center gap-1.5">
-              <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">조회수</dt>
-              <dd className="text-[var(--color-ink-soft)]">{displayedViewCount.toLocaleString("ko-KR")}</dd>
+              <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">
+                조회수
+              </dt>
+              <dd className="text-[var(--color-ink-soft)]">
+                {displayedViewCount.toLocaleString("ko-KR")}
+              </dd>
             </div>
             <div className="flex items-center gap-1.5">
-              <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">첨부파일</dt>
-              <dd className="text-[var(--color-ink-soft)]">{attachments.length}건</dd>
+              <dt className="font-[var(--font-display)] uppercase tracking-[0.2em]">
+                첨부파일
+              </dt>
+              <dd className="text-[var(--color-ink-soft)]">
+                {attachments.length}건
+              </dd>
             </div>
           </dl>
         </header>
@@ -187,7 +211,9 @@ export default async function CommunityPostDetailPage({ params, searchParams }: 
                         </a>
                       </div>
                       {sizeLabel && (
-                        <span className="shrink-0 text-xs text-[var(--color-muted)]">{sizeLabel}</span>
+                        <span className="shrink-0 text-xs text-[var(--color-muted)]">
+                          {sizeLabel}
+                        </span>
                       )}
                     </li>
                   );
@@ -206,13 +232,6 @@ export default async function CommunityPostDetailPage({ params, searchParams }: 
             <ArrowLeftIcon />
             목록으로
           </Link>
-          <p className="text-xs text-[var(--color-muted)]">
-            관리자 수정은{" "}
-            <Link href={`/admin/community/${post.id}/edit`} className="text-[var(--color-terracotta)] underline">
-              /admin
-            </Link>
-            에서 가능합니다.
-          </p>
         </div>
       </div>
     </section>

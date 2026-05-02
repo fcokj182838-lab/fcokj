@@ -87,7 +87,7 @@ export default async function AdminPopupBannerListPage({
             <p className="mt-2 text-sm text-[var(--color-ink-soft)]">
               여러 개를 등록할 수 있습니다. 숫자가 작을수록 먼저 표시됩니다. 「오늘 하루 보지 않기」로 닫은 뒤에는 같은
               날(한국)에 다음 순서 팝업이 이어서 뜹니다. 방문자 화면에서 팝업 카드 최대 너비는 약{" "}
-              <strong className="font-medium text-[var(--color-ink)]">512px</strong>, 이미지는 세로 최대 약{" "}
+              <strong className="font-medium text-[var(--color-ink)]">430px</strong>, 이미지는 세로 최대 약{" "}
               <strong className="font-medium text-[var(--color-ink)]">208px</strong> 안에서 비율을 유지해 보입니다. 자세한
               권장 해상도는 각 팝업 「편집」에서 확인하세요.
             </p>

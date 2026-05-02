@@ -154,24 +154,24 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
         onClick={handleCloseSession}
       />
 
-      <div className="relative z-[101] w-full max-w-lg border border-[var(--color-line)] bg-[var(--color-ivory)] shadow-lg">
+      <div className="relative z-[101] w-full max-w-[430px] border border-[var(--color-line)] bg-[var(--color-ivory)] shadow-lg">
         <div className="max-h-[85vh] overflow-y-auto p-0">
           {hasImage && (
-            <div className="overflow-hidden bg-[var(--color-cream)]">
+            <div className="overflow-hidden bg-[var(--color-ivory)]">
               {/* eslint-disable-next-line @next/next/no-img-element -- 관리자가 입력한 임의 도메인 URL */}
               <img
                 src={currentBanner.image_url}
                 alt=""
-                className="max-h-[min(52vh,13rem)] w-full object-contain"
+                className="block max-h-[min(52vh,13rem)] w-full object-contain"
                 loading="lazy"
               />
             </div>
           )}
 
           {(hasTitle || hasBody) && (
-            <div className="px-3 py-2">
+            <div className="py-2">
               {hasTitle && (
-                <h2 id={titleId} className="font-[var(--font-serif)] text-lg font-medium text-[var(--color-ink)] sm:text-xl">
+                <h2 id={titleId} className="px-2 font-[var(--font-serif)] text-lg font-medium text-[var(--color-ink)] sm:text-xl">
                   {currentBanner.title}
                 </h2>
               )}
@@ -179,7 +179,7 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
               {hasBody && (
                 <p
                   id={descId}
-                  className={`whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-ink-soft)] ${hasTitle ? "mt-1.5" : ""}`}
+                  className={`whitespace-pre-wrap px-2 text-sm leading-relaxed text-[var(--color-ink-soft)] ${hasTitle ? "mt-1.5" : ""}`}
                 >
                   {currentBanner.body}
                 </p>
@@ -187,7 +187,7 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--color-line)] px-3 py-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[var(--color-line)] px-2 py-2 sm:px-3">
             {hasLink && (
               <Link
                 href={currentBanner.link_url}

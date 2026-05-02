@@ -134,7 +134,7 @@ export default async function AdminPopupBannerEditPage({
             <p className="font-medium text-[var(--color-ink)]">방문자 화면에서의 팝업 크기 (현재 사이트 UI)</p>
             <ul className="list-inside list-disc space-y-1 text-xs leading-relaxed">
               <li>
-                <span className="text-[var(--color-ink)]">카드 최대 너비</span> 약 <strong>512px</strong> (큰 화면 기준,
+                <span className="text-[var(--color-ink)]">카드 최대 너비</span> 약 <strong>430px</strong> (큰 화면 기준,
                 모바일은 화면 너비에 맞춤).
               </li>
               <li>
@@ -243,7 +243,8 @@ export default async function AdminPopupBannerEditPage({
                 <ul className="mt-1 list-inside list-disc space-y-1">
                   <li>
                     <strong className="text-[var(--color-ink)]">배너·가로형</strong>: 가로{" "}
-                    <strong>1024×512px</strong> 또는 <strong>1200×600px</strong> (2:1 전후) — 레티나 대비·여백에 여유.
+                    <strong>860×430px</strong> 또는 <strong>1200×600px</strong> (가로 2:1 전후, 팝업 최대 너비 430px 기준) — 레티나
+                    대비·여백에 여유.
                   </li>
                   <li>
                     <strong className="text-[var(--color-ink)]">로고·아이콘·정방형</strong>:{" "}

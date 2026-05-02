@@ -166,6 +166,9 @@ export default async function AdminPage({
                   <Link href="/community" className="text-[var(--color-ink-soft)] underline">
                     커뮤니티 페이지 (방문자 보기)
                   </Link>
+                  <Link href="/admin/popup-banner" className="text-[var(--color-terracotta)] underline">
+                    팝업 배너 설정
+                  </Link>
                 </div>
               </article>
             </div>

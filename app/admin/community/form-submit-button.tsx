@@ -8,6 +8,8 @@ type FormSubmitButtonProps = {
   /** 서버 액션 전송 중(스피너와 함께) */
   pendingLabel: string;
   className?: string;
+  /** 전송 외 사유로 비활성 (환경 미구성 등) */
+  disabled?: boolean;
 };
 
 /** 서버 액션 제출 중일 때 돌아가는 링 스피너 (버튼 텍스트 색에 맞춤) */
@@ -41,13 +43,19 @@ function InlineSpinner() {
  * 같은 <form> 안에 두고 useFormStatus 로 전송 중 UI를 표시한다.
  * (부모가 Server Component 여도 됨 — 이 파일만 클라이언트)
  */
-export function FormSubmitButton({ label, pendingLabel, className }: FormSubmitButtonProps) {
+export function FormSubmitButton({
+  label,
+  pendingLabel,
+  className,
+  disabled: disabledProp,
+}: FormSubmitButtonProps) {
   const { pending } = useFormStatus();
+  const disabled = Boolean(disabledProp) || pending;
 
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={disabled}
       aria-busy={pending}
       className={`inline-flex min-w-[5.5rem] items-center justify-center gap-2 disabled:cursor-wait disabled:opacity-90 ${className ?? ""}`}
     >

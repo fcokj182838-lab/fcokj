@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SiteHeader } from "./components/site-header";
 import { SiteFooter } from "./components/site-footer";
+import { SitePopupBanner } from "./components/site-popup-banner";
+import { getSitePopupBannersPublic } from "./lib/site-popup-banner";
 import { SITE_INFO } from "./lib/site-config";
 
 export const metadata: Metadata = {
@@ -28,11 +30,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const popupBanners = await getSitePopupBannersPublic();
+
   return (
     <html lang="ko" className="h-full antialiased">
       <head>
@@ -55,6 +59,7 @@ export default function RootLayout({
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <SitePopupBanner banners={popupBanners} />
       </body>
     </html>
   );

@@ -18,7 +18,10 @@ type NavGroup = {
 const ADMIN_NAV_GROUPS: NavGroup[] = [
   {
     heading: "개요",
-    items: [{ label: "대시보드", href: "/admin", match: "exact" }],
+    items: [
+      { label: "대시보드", href: "/admin", match: "exact" },
+      { label: "팝업 배너", href: "/admin/popup-banner", match: "prefix" },
+    ],
   },
   {
     heading: "커뮤니티",

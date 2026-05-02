@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { partitionCommunityAttachmentsForUpdate } from "../../../../lib/community-attachments";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { logoutAdmin, updateCommunityPostFromAdmin } from "../../../actions";
+import { FormSubmitButton } from "../../form-submit-button";
 import { CommunityPostAttachmentsEditor } from "./attachments-editor";
 
 type PageProps = {
@@ -148,12 +149,11 @@ export default async function AdminCommunityEditPage({ params, searchParams }: P
               공개 (방문자 커뮤니티 페이지에 표시)
             </label>
             <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
+              <FormSubmitButton
+                label="저장"
+                pendingLabel="저장 중…"
                 className="bg-[var(--color-terracotta)] px-4 py-2 text-sm font-semibold text-[var(--color-ivory)]"
-              >
-                저장
-              </button>
+              />
               <Link
                 href="/admin/community"
                 className="border border-[var(--color-line)] bg-white px-4 py-2 text-sm text-[var(--color-ink)]"

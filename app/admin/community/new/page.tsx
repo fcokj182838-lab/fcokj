@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "../../../lib/require-admin";
 import { createCommunityPostFromAdmin, logoutAdmin } from "../../actions";
+import { FormSubmitButton } from "../form-submit-button";
 import { AttachmentsInput } from "./attachments-input";
 
 export const metadata: Metadata = {
@@ -113,12 +114,11 @@ export default async function AdminCommunityNewPage({
               공개 (방문자 커뮤니티 페이지에 표시)
             </label>
             <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
+              <FormSubmitButton
+                label="등록"
+                pendingLabel="등록 중…"
                 className="bg-[var(--color-terracotta)] px-4 py-2 text-sm font-semibold text-[var(--color-ivory)]"
-              >
-                등록
-              </button>
+              />
               <Link
                 href="/admin/community"
                 className="border border-[var(--color-line)] bg-white px-4 py-2 text-sm text-[var(--color-ink)]"

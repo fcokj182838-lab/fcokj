@@ -25,14 +25,21 @@ export function getTodayDateStringKst(referenceDate: Date = new Date()): string 
   }).format(referenceDate);
 }
 
+/** DB/직렬화로 긴 ISO 가 들어와도 앞 10자만 써서 YYYY-MM-DD 로 비교(형식 깨지면 빈 문자열 = 미설정 취급) */
+function toComparableYmd(value: string | null | undefined): string {
+  const t = (value ?? "").trim();
+  if (t.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0, 10);
+  return "";
+}
+
 /** 게시 기간 안이면 true — 날짜 미설정이면 항상 true */
 export function isPopupBannerInPublishWindow(
   row: SitePopupBannerRow,
   referenceDate: Date = new Date(),
 ): boolean {
   const todayKst = getTodayDateStringKst(referenceDate);
-  const start = (row.publish_start_date ?? "").trim();
-  const end = (row.publish_end_date ?? "").trim();
+  const start = toComparableYmd(row.publish_start_date);
+  const end = toComparableYmd(row.publish_end_date);
   if (start.length > 0 && todayKst < start) return false;
   if (end.length > 0 && todayKst > end) return false;
   return true;

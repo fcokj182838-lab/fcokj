@@ -7,11 +7,14 @@ export { isPopupBannerRenderable } from "./site-popup-banner-shared";
 
 /** DB에서 온 값을 Row 형태로 보정 */
 function normalizePopupBannerRow(raw: Record<string, unknown>): SitePopupBannerRow {
+  /** Postgres date / timestamptz 등 → YYYY-MM-DD 로 맞춤(문자열 비교·게시 기간 판정 안정화) */
   const dateOrNull = (value: unknown): string | null => {
     if (value == null) return null;
     if (typeof value !== "string") return null;
     const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
+    if (!trimmed) return null;
+    const ymd = trimmed.slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(ymd) ? ymd : null;
   };
 
   const rawId = raw.id;

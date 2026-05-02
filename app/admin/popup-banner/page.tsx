@@ -86,7 +86,10 @@ export default async function AdminPopupBannerListPage({
             </h1>
             <p className="mt-2 text-sm text-[var(--color-ink-soft)]">
               여러 개를 등록할 수 있습니다. 숫자가 작을수록 먼저 표시됩니다. 「오늘 하루 보지 않기」로 닫은 뒤에는 같은
-              날(한국)에 다음 순서 팝업이 이어서 뜹니다.
+              날(한국)에 다음 순서 팝업이 이어서 뜹니다. 방문자 화면에서 팝업 카드 최대 너비는 약{" "}
+              <strong className="font-medium text-[var(--color-ink)]">512px</strong>, 이미지는 세로 최대 약{" "}
+              <strong className="font-medium text-[var(--color-ink)]">208px</strong> 안에서 비율을 유지해 보입니다. 자세한
+              권장 해상도는 각 팝업 「편집」에서 확인하세요.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -122,6 +125,34 @@ export default async function AdminPopupBannerListPage({
             Supabase 관리자 키가 없어 목록을 불러오거나 추가할 수 없습니다.
           </p>
         )}
+
+        <details className="rounded-sm border border-[var(--color-line)] bg-white/70 px-4 py-3 text-sm text-[var(--color-ink-soft)]">
+          <summary className="cursor-pointer font-medium text-[var(--color-ink)]">
+            방문 사이트에서 팝업이 안 보일 때
+          </summary>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-relaxed">
+            <li>
+              <strong className="text-[var(--color-ink)]">「오늘 하루 보지 않기」</strong> 또는{" "}
+              <strong className="text-[var(--color-ink)]">「자세히 보기」</strong>를 누른 날(한국 날짜)에는,{" "}
+              <strong className="text-[var(--color-ink)]">새로고침해도</strong> 같은 공지는 브라우저에 저장되어 다시 안
+              뜹니다. 내일(한국 자정 이후)이 되거나, 관리자가 해당 팝업을 저장해 내용이 바뀌면(`updated_at` 변경) 다시
+              표시됩니다.
+            </li>
+            <li>
+              <strong className="text-[var(--color-ink)]">「닫기」</strong>·배경 클릭·Esc만 쓴 경우에는 새로고침 후
+              다시 나올 수 있습니다(탭 안에서만 건너뜀).
+            </li>
+            <li>
+              관리자 설정: <strong className="text-[var(--color-ink)]">팝업 사용</strong> 켜짐, 제목·본문·이미지 중 하나
+              이상, <strong className="text-[var(--color-ink)]">게시 기간</strong>이 오늘(한국)을 포함하는지 확인하세요.
+            </li>
+            <li>
+              테스트용으로 숨김만 지우려면 브라우저 개발자 도구 → Application → Local Storage에서 키{" "}
+              <code className="rounded bg-[var(--color-cream)] px-1 text-[11px]">fcokj_popup_banner_dismiss_map</code>{" "}
+              항목을 삭제하세요.
+            </li>
+          </ul>
+        </details>
 
         <article className="overflow-x-auto border border-[var(--color-line)] bg-[var(--color-cream)]">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">

@@ -62,7 +62,8 @@ function dismissBannerForToday(banner: SitePopupBannerRow): void {
 
 /**
  * 전역 팝업 배너 — 여러 건을 순서대로 표시.
- * 「오늘 하루 보지 않기」는 해당 배너만 닫고, 다음 순서 배너가 있으면 이어서 표시.
+ * - 닫기: 이번 방문(탭)에서만 건너뜀 — 새로고침·다음 방문 시 다시 표시될 수 있음.
+ * - 오늘 하루 보지 않기: 해당 배너는 한국 날짜 기준 오늘은 저장소로 숨김, 다음 순서 배너가 있으면 이어서 표시.
  */
 export function SitePopupBanner({ banners }: SitePopupBannerProps) {
   const pathname = usePathname();
@@ -75,16 +76,27 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
   );
 
   const [uiReady, setUiReady] = useState(false);
-  const [activeBannerId, setActiveBannerId] = useState<number | null>(null);
+  /** 닫기 버튼·배경으로만 건너뛴 id (localStorage 미사용, 새로고침 시 초기화) */
+  const [sessionSkippedBannerIds, setSessionSkippedBannerIds] = useState<Set<number>>(() => new Set());
+  /** 오늘 하루 저장 후 localStorage 를 다시 반영하기 위한 틱 */
+  const [dismissMapTick, setDismissMapTick] = useState(0);
 
   const isAdminRoute = pathname.startsWith("/admin");
+
+  // dismissMapTick: 오늘 하루 저장 후 localStorage 반영해 다음 배너를 고름
+  const currentBanner = useMemo(() => {
+    for (const b of eligibleOrdered) {
+      if (isDismissedForTodayKst(b)) continue;
+      if (sessionSkippedBannerIds.has(b.id)) continue;
+      return b;
+    }
+    return null;
+  }, [eligibleOrdered, sessionSkippedBannerIds, dismissMapTick]);
 
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
-      const first = eligibleOrdered.find((b) => !isDismissedForTodayKst(b));
-      setActiveBannerId(first?.id ?? null);
       setUiReady(true);
     });
     return () => {
@@ -92,26 +104,31 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
     };
   }, [eligibleOrdered]);
 
-  const currentBanner = useMemo(
-    () => eligibleOrdered.find((b) => b.id === activeBannerId) ?? null,
-    [eligibleOrdered, activeBannerId],
-  );
+  /** 이번 방문에서만 현재 팝업 건너뛰기 */
+  const handleCloseSession = useCallback(() => {
+    if (!currentBanner) return;
+    setSessionSkippedBannerIds((prev) => {
+      const next = new Set(prev);
+      next.add(currentBanner.id);
+      return next;
+    });
+  }, [currentBanner]);
 
-  const handleDismiss = useCallback(() => {
+  /** 오늘(한국) 동안 이 팝업 숨김 + 다음 팝업으로 */
+  const handleDismissToday = useCallback(() => {
     if (!currentBanner) return;
     dismissBannerForToday(currentBanner);
-    const next = eligibleOrdered.find((b) => !isDismissedForTodayKst(b));
-    setActiveBannerId(next?.id ?? null);
-  }, [currentBanner, eligibleOrdered]);
+    setDismissMapTick((n) => n + 1);
+  }, [currentBanner]);
 
   useEffect(() => {
     if (!uiReady || !currentBanner || isAdminRoute) return undefined;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") handleDismiss();
+      if (event.key === "Escape") handleCloseSession();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [uiReady, currentBanner, isAdminRoute, handleDismiss]);
+  }, [uiReady, currentBanner, isAdminRoute, handleCloseSession]);
 
   if (isAdminRoute) return null;
   if (!uiReady) return null;
@@ -133,8 +150,8 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
       <button
         type="button"
         className="absolute inset-0"
-        aria-label="배경 닫기 (오늘 하루 이 팝업 보지 않기)"
-        onClick={handleDismiss}
+        aria-label="배경 닫기 (이번에만 닫기)"
+        onClick={handleCloseSession}
       />
 
       <div className="relative z-[101] w-full max-w-lg border border-[var(--color-line)] bg-[var(--color-ivory)] shadow-lg">
@@ -175,15 +192,22 @@ export function SitePopupBanner({ banners }: SitePopupBannerProps) {
               <Link
                 href={currentBanner.link_url}
                 className="inline-flex border border-[var(--color-terracotta)] bg-[var(--color-terracotta)] px-3 py-1.5 text-sm font-semibold text-[var(--color-ivory)]"
-                onClick={handleDismiss}
+                onClick={handleDismissToday}
               >
                 자세히 보기
               </Link>
             )}
             <button
               type="button"
-              onClick={handleDismiss}
+              onClick={handleCloseSession}
               className="inline-flex border border-[var(--color-line)] bg-white px-3 py-1.5 text-sm text-[var(--color-ink)]"
+            >
+              닫기
+            </button>
+            <button
+              type="button"
+              onClick={handleDismissToday}
+              className="inline-flex border border-[var(--color-line)] bg-[var(--color-cream)] px-3 py-1.5 text-sm text-[var(--color-ink)]"
             >
               오늘 하루 보지 않기
             </button>

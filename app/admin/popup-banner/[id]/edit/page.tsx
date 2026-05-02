@@ -130,6 +130,25 @@ export default async function AdminPopupBannerEditPage({
         )}
 
         <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-6">
+          <div className="mb-6 grid gap-2 rounded-sm border border-[var(--color-line)] bg-white/80 p-4 text-sm text-[var(--color-ink-soft)]">
+            <p className="font-medium text-[var(--color-ink)]">방문자 화면에서의 팝업 크기 (현재 사이트 UI)</p>
+            <ul className="list-inside list-disc space-y-1 text-xs leading-relaxed">
+              <li>
+                <span className="text-[var(--color-ink)]">카드 최대 너비</span> 약 <strong>512px</strong> (큰 화면 기준,
+                모바일은 화면 너비에 맞춤).
+              </li>
+              <li>
+                <span className="text-[var(--color-ink)]">카드 전체 높이</span>는 내용에 따라 달라지며, 한 화면을 넘으면
+                안에서 스크롤됩니다(대략 화면 높이의 85%까지).
+              </li>
+              <li>
+                <span className="text-[var(--color-ink)]">이미지 영역</span>은 가로를 카드에 맞추고, 세로는 대략{" "}
+                <strong>208px</strong> 또는 화면 높이의 52% 중 더 작은 쪽까지 표시됩니다(
+                <code className="rounded bg-[var(--color-cream)] px-1">object-contain</code>으로 비율 유지).
+              </li>
+            </ul>
+          </div>
+
           <form action={updateSitePopupBannerFromAdmin} className="grid gap-5">
             <input type="hidden" name="id" value={String(row.id)} />
 
@@ -219,6 +238,23 @@ export default async function AdminPopupBannerEditPage({
               <p className="text-xs text-[var(--color-muted)]">
                 새 파일을 선택해 저장하면 스토리지에 올라가며, 아래 URL 입력보다 우선합니다. (최대 8MB)
               </p>
+              <div className="rounded-sm border border-dashed border-[var(--color-line)] bg-[var(--color-cream)]/80 px-3 py-2 text-xs leading-relaxed text-[var(--color-ink-soft)]">
+                <p className="font-medium text-[var(--color-ink)]">이미지 권장 사이즈</p>
+                <ul className="mt-1 list-inside list-disc space-y-1">
+                  <li>
+                    <strong className="text-[var(--color-ink)]">배너·가로형</strong>: 가로{" "}
+                    <strong>1024×512px</strong> 또는 <strong>1200×600px</strong> (2:1 전후) — 레티나 대비·여백에 여유.
+                  </li>
+                  <li>
+                    <strong className="text-[var(--color-ink)]">로고·아이콘·정방형</strong>:{" "}
+                    <strong>600×600px</strong> ~ <strong>800×800px</strong> — 세로 표시 한도 내에서 contain.
+                  </li>
+                  <li>
+                    <strong className="text-[var(--color-ink)]">형식</strong>: JPEG / PNG / WebP 권장 (GIF·AVIF 가능).
+                    텍스트가 많은 공지는 이미지보다 본문 입력을 함께 쓰는 편이 읽기 좋습니다.
+                  </li>
+                </ul>
+              </div>
               {row.image_url ? (
                 <div className="mt-1 grid gap-2">
                   <span className="text-xs text-[var(--color-muted)]">현재 저장된 이미지 미리보기</span>

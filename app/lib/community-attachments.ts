@@ -68,3 +68,52 @@ export function parseCommunityAttachmentsFromDb(raw: unknown): CommunityAttachme
 
   return result;
 }
+
+/** DB·스토리지에 저장되는 첨부 한 건 (관리자 업로드·수정 액션과 동일 형식) */
+export type CommunityAttachmentRecord = {
+  name: string;
+  url: string;
+  path: string;
+  size: number;
+  type?: string;
+};
+
+/**
+ * 수정 시: path+url 이 있는 항목(스토리지 연동)과, path 없이 url 만 있는 레거시 항목을 분리한다.
+ * 레거시는 스토리지 개별 삭제가 불가해 JSON 그대로 유지해 두고 배열 끝에 이어 붙인다.
+ */
+export function partitionCommunityAttachmentsForUpdate(raw: unknown): {
+  withPath: CommunityAttachmentRecord[];
+  legacyItems: unknown[];
+} {
+  if (!Array.isArray(raw)) {
+    return { withPath: [], legacyItems: [] };
+  }
+
+  const withPath: CommunityAttachmentRecord[] = [];
+  const legacyItems: unknown[] = [];
+
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const path = typeof o.path === "string" && o.path.trim().length > 0 ? o.path.trim() : "";
+    const url = typeof o.url === "string" && o.url.trim().length > 0 ? o.url.trim() : "";
+
+    if (path && url) {
+      const nameRaw = o.name;
+      const name =
+        typeof nameRaw === "string" && nameRaw.trim().length > 0 ? nameRaw.trim() : "첨부파일";
+      const sizeRaw = o.size;
+      const size =
+        typeof sizeRaw === "number" && Number.isFinite(sizeRaw) && sizeRaw >= 0 ? sizeRaw : 0;
+      const typeRaw = o.type;
+      const type =
+        typeof typeRaw === "string" && typeRaw.trim().length > 0 ? typeRaw.trim() : undefined;
+      withPath.push({ path, url, name, size, type });
+    } else if (url) {
+      legacyItems.push(item);
+    }
+  }
+
+  return { withPath, legacyItems };
+}

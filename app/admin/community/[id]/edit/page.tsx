@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { partitionCommunityAttachmentsForUpdate } from "../../../../lib/community-attachments";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { logoutAdmin, updateCommunityPostFromAdmin } from "../../../actions";
+import { CommunityPostAttachmentsEditor } from "./attachments-editor";
 
 type PageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
+const ATTACHMENT_MAX_FILES = 10;
+const ATTACHMENT_MAX_BYTES = 20 * 1024 * 1024;
+
 const noticeMap: Record<string, string> = {
   "error=invalid": "제목과 내용을 모두 입력해 주세요.",
+  "error=invalid_keep": "유지할 첨부 정보가 올바르지 않습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.",
   "error=update": "저장 중 오류가 발생했습니다.",
+  "error=upload": "첨부파일 업로드에 실패했습니다. 파일 크기·확장자를 확인해 주세요.",
+  "error=too_many": `첨부파일은 최대 ${ATTACHMENT_MAX_FILES}개까지 등록할 수 있습니다.`,
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -34,13 +42,17 @@ export default async function AdminCommunityEditPage({ params, searchParams }: P
 
   const { data: post, error } = await supabaseAdmin
     .from("community_posts")
-    .select("id, title, content, is_published, created_at, updated_at")
+    .select("id, title, content, is_published, created_at, updated_at, attachments")
     .eq("id", postId)
     .maybeSingle();
 
   if (error || !post) {
     notFound();
   }
+
+  const { withPath: storableAttachments, legacyItems } = partitionCommunityAttachmentsForUpdate(
+    post.attachments,
+  );
 
   const queryEntries = Object.entries(sp).flatMap(([key, value]) => {
     if (!value) return [];
@@ -111,6 +123,21 @@ export default async function AdminCommunityEditPage({ params, searchParams }: P
                 className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
               />
             </label>
+            <div className="grid gap-1 text-sm">
+              <span className="text-[var(--color-ink-soft)]">
+                첨부파일
+                <span className="ml-1 text-xs text-[var(--color-muted)]">
+                  (선택 · 최대 {ATTACHMENT_MAX_FILES}개 · 파일당 최대 20MB)
+                </span>
+              </span>
+              <CommunityPostAttachmentsEditor
+                initialStorable={storableAttachments}
+                legacyAttachmentCount={legacyItems.length}
+                maxFiles={ATTACHMENT_MAX_FILES}
+                maxBytes={ATTACHMENT_MAX_BYTES}
+              />
+            </div>
+
             <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-ink-soft)]">
               <input
                 type="checkbox"

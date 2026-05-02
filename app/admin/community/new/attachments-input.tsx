@@ -39,15 +39,13 @@ export function AttachmentsInput({ name, maxFiles, maxBytes }: AttachmentsInputP
     fileInputRef.current.files = dataTransfer.files;
   }, []);
 
-  /** 파일 추가 (중복 제거 + 개수/용량 검증) */
+  /** 파일 추가 (중복 제거 + 개수/용량 검증) — FileList 는 input 과 연결되어 value 초기화 시 비므로 File[] 만 받는다 */
   const handleAddFiles = useCallback(
-    (incoming: FileList | null) => {
-      if (!incoming || incoming.length === 0) return;
-
-      const incomingArray = Array.from(incoming);
+    (incomingFiles: File[]) => {
+      if (incomingFiles.length === 0) return;
 
       // 개별 용량 초과 차단
-      const oversize = incomingArray.find((file) => file.size > maxBytes);
+      const oversize = incomingFiles.find((file) => file.size > maxBytes);
       if (oversize) {
         setWarning(
           `"${oversize.name}" 파일이 최대 용량(${formatFileSize(maxBytes)})을 초과합니다.`,
@@ -57,7 +55,7 @@ export function AttachmentsInput({ name, maxFiles, maxBytes }: AttachmentsInputP
 
       // (이름 + 크기) 기준으로 중복 차단 (동일 파일 다시 선택 시)
       const existingKeys = new Set(selectedFiles.map((file) => `${file.name}::${file.size}`));
-      const deduped = incomingArray.filter(
+      const deduped = incomingFiles.filter(
         (file) => !existingKeys.has(`${file.name}::${file.size}`),
       );
 
@@ -108,10 +106,10 @@ export function AttachmentsInput({ name, maxFiles, maxBytes }: AttachmentsInputP
         // onChange 의 e.target.files 는 새로 선택한 파일만 담겨있으므로
         // 누적·중복 제거 로직을 거친 뒤 다시 input.files 로 동기화한다.
         onChange={(event) => {
-          const incoming = event.target.files;
-          // 즉시 input.files 를 비워두고 add 로직에서 누적분을 다시 채움
+          // value 를 비우면 같은 객체를 가리키는 FileList 가 비는 브라우저가 있어, 반드시 먼저 스냅샷
+          const pickedFiles = event.target.files ? Array.from(event.target.files) : [];
           if (event.target.value) event.target.value = "";
-          handleAddFiles(incoming);
+          handleAddFiles(pickedFiles);
         }}
         className="border border-[var(--color-line)] bg-white px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)] file:mr-3 file:rounded-none file:border file:border-[var(--color-line)] file:bg-[var(--color-ivory)] file:px-3 file:py-1 file:text-xs file:text-[var(--color-ink-soft)]"
       />

@@ -30,5 +30,6 @@ export async function requireAdminUser() {
     redirect("/admin/login?error=forbidden");
   }
 
-  return { userId: user.id, supabaseAdmin };
+  // Storage RLS(community_attachments_*)는 auth.uid() 기준 — 서비스 롤 JWT에는 uid 가 없어 업로드가 막힐 수 있음
+  return { userId: user.id, supabaseAdmin, sessionSupabase: supabase };
 }

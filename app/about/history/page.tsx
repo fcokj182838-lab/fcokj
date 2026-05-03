@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 // 법인소개 - 연혁 페이지
@@ -16,6 +17,8 @@ type HistoryEvent = {
   month: string;
   title: string;
   description?: string;
+  imageSrc?: string;
+  imageAlt?: string;
   highlight?: boolean; // 주요 마일스톤 강조 여부
 };
 
@@ -26,6 +29,20 @@ type HistoryYear = {
 };
 
 const HISTORY_TIMELINE: HistoryYear[] = [
+  {
+    year: "2025",
+    caption: "지역사회 공헌의 결실",
+    events: [
+      {
+        month: "09",
+        title: "경상북도 도지사 표창 수여",
+        description: "외국인 권익 향상과 안정적 정착 지원 공로를 인정받아 표창을 수여받았습니다.",
+        imageSrc: "/images/sang.png",
+        imageAlt: "2025년 경상북도 도지사 표창장",
+        highlight: true,
+      },
+    ],
+  },
   {
     year: "2020",
     caption: "새 이름으로의 도약",
@@ -165,6 +182,7 @@ export default function AboutHistoryPage() {
       <SubNavigation />
       <TimelineIntroSection />
       <TimelineSection />
+      <GovernorAwardSection />
       <MilestonesSection />
       <NextStepsSection />
     </>
@@ -512,8 +530,67 @@ function EventCard({ event }: { event: HistoryEvent }) {
             {event.description}
           </p>
         )}
+
+        {/* 이벤트 참조 이미지 (옵션) */}
+        {event.imageSrc && (
+          <div className="mt-5 w-[200px] overflow-hidden border border-[var(--color-line)] bg-[var(--color-ivory)] p-2">
+            <Image
+              src={event.imageSrc}
+              alt={event.imageAlt ?? `${event.title} 관련 이미지`}
+              width={200}
+              height={260}
+              className="h-auto w-full object-contain"
+            />
+          </div>
+        )}
       </article>
     </li>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+ *  2025년 경상북도 도지사 표창 - 이미지 포함 강조 섹션
+ * ──────────────────────────────────────────────────────── */
+function GovernorAwardSection() {
+  return (
+    <section className="relative bg-[var(--color-ivory)] py-24 lg:py-32">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-10">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-14">
+          <div className="lg:col-span-5">
+            <p className="font-[var(--font-display)] text-[11px] uppercase tracking-[0.3em] text-[var(--color-terracotta)]">
+              ─ 2025 Highlight
+            </p>
+            <h2 className="mt-5 font-[var(--font-serif)] text-3xl font-medium leading-tight tracking-[-0.02em] text-[var(--color-ink)] md:text-5xl">
+              2025년 경상북도
+              <br />
+              <em className="font-[var(--font-display)] not-italic text-[var(--color-terracotta)]">
+                도지사 표창
+              </em>
+            </h2>
+            <p className="mt-6 text-[15px] leading-relaxed text-[var(--color-ink-soft)] md:text-base">
+              사단법인 외국인과 동행은 외국인 권익 향상과 안정적 정착 지원, 다문화 사회 발전에 기여한
+              공로를 인정받아 2025년 경상북도 도지사 표창을 수상했습니다.
+            </p>
+          </div>
+
+          <div className="lg:col-span-7">
+            <figure className="overflow-hidden border border-[var(--color-line)] bg-[var(--color-cream)] p-4 shadow-[0_24px_40px_-24px_rgba(26,35,50,0.2)] sm:p-5">
+              <Image
+                src="/images/sang.png"
+                alt="2025년 경상북도 도지사 표창장"
+                width={1400}
+                height={1800}
+                className="h-auto w-full object-contain"
+                priority={false}
+              />
+              <figcaption className="mt-4 border-t border-[var(--color-line)] pt-4 text-[13px] text-[var(--color-ink-soft)]">
+                2025년 9월 13일 수여, 경상북도 도지사 표창
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

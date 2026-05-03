@@ -74,6 +74,8 @@ const HISTORY_TIMELINE: HistoryYear[] = [
         month: "05",
         title: "행정자치부장관 표창 수여",
         description: "지역사회 공헌에 대한 정부 표창",
+        imageSrc: "/images/sang2.png",
+        imageAlt: "2016년 행정자치부장관 표창장",
         highlight: true,
       },
     ],

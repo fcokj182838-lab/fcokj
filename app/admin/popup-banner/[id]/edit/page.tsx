@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { getSupabaseAdminClient } from "../../../../lib/supabase/server";
-import { FormSubmitButton } from "../../../community/form-submit-button";
+import { FormSubmitButton } from "../../../form-submit-button";
 import { logoutAdmin } from "../../../actions";
 import { updateSitePopupBannerFromAdmin } from "../../../popup-banner-actions";
 import { DeletePopupBannerButton } from "../../delete-popup-banner-button";

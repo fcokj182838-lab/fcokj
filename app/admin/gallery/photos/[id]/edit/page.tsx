@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { requireAdminUser } from "../../../../../lib/require-admin";
 import { logoutAdmin } from "../../../../actions";
 import { updateGalleryPhotoFromAdmin } from "../../../../photo-actions";
+import { FormSubmitButton } from "../../../../form-submit-button";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -224,12 +225,11 @@ export default async function AdminGalleryPhotoEditPage({ params, searchParams }
             </label>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
+              <FormSubmitButton
+                label="저장"
+                pendingLabel="저장 중…"
                 className="bg-[var(--color-terracotta)] px-4 py-2 text-sm font-semibold text-[var(--color-ivory)]"
-              >
-                저장
-              </button>
+              />
               <Link
                 href="/admin/gallery/photos"
                 className="border border-[var(--color-line)] bg-white px-4 py-2 text-sm text-[var(--color-ink)]"

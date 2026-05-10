@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { logoutAdmin } from "../../../actions";
 import { createGalleryPhotoFromAdmin } from "../../../photo-actions";
+import { FormSubmitButton } from "../../../form-submit-button";
 import { GalleryPhotoImageField } from "./gallery-photo-image-field";
 
 export const metadata: Metadata = {
@@ -146,12 +147,11 @@ export default async function AdminGalleryPhotoNewPage({
             </label>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
+              <FormSubmitButton
+                label="등록"
+                pendingLabel="등록 중…"
                 className="bg-[var(--color-terracotta)] px-4 py-2 text-sm font-semibold text-[var(--color-ivory)]"
-              >
-                등록
-              </button>
+              />
               <Link
                 href="/admin/gallery/photos"
                 className="border border-[var(--color-line)] bg-white px-4 py-2 text-sm text-[var(--color-ink)]"

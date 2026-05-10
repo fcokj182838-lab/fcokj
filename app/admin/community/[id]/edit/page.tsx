@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { partitionCommunityAttachmentsForUpdate } from "../../../../lib/community-attachments";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { logoutAdmin, updateCommunityPostFromAdmin } from "../../../actions";
-import { FormSubmitButton } from "../../form-submit-button";
+import { FormSubmitButton } from "../../../form-submit-button";
 import { CommunityPostAttachmentsEditor } from "./attachments-editor";
 
 type PageProps = {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { logoutAdmin } from "../../../actions";
 import { createGalleryPhotoFromAdmin } from "../../../photo-actions";
+import { FormSubmitButton } from "../../../form-submit-button";
 
 export const metadata: Metadata = {
   title: "새 언론 자료",
@@ -142,12 +143,11 @@ export default async function AdminGalleryPressNewPage({
             </label>
 
             <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
+              <FormSubmitButton
+                label="등록"
+                pendingLabel="등록 중…"
                 className="bg-[var(--color-terracotta)] px-4 py-2 text-sm font-semibold text-[var(--color-ivory)]"
-              >
-                등록
-              </button>
+              />
               <Link
                 href="/admin/gallery/photos"
                 className="border border-[var(--color-line)] bg-white px-4 py-2 text-sm text-[var(--color-ink)]"

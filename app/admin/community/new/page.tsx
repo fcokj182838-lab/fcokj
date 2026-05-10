@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "../../../lib/require-admin";
 import { createCommunityPostFromAdmin, logoutAdmin } from "../../actions";
-import { FormSubmitButton } from "../form-submit-button";
+import { FormSubmitButton } from "../../form-submit-button";
 import { AttachmentsInput } from "./attachments-input";
 
 export const metadata: Metadata = {

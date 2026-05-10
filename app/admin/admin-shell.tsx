@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { logoutAdmin } from "./actions";
 
-/** 메뉴 활성 상태 판별 방식 (갤러리 신규는 쿼리로 활동/언론 구분) */
-type NavMatchMode = "exact" | "prefix" | "new-activity" | "new-press";
+/** 메뉴 활성 상태 판별 방식 */
+type NavMatchMode = "exact" | "prefix";
 
 type NavLeaf = { label: string; href: string; match?: NavMatchMode };
 
@@ -33,30 +33,20 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
   {
     heading: "갤러리",
     items: [
-      { label: "사진·언론 목록", href: "/admin/gallery/photos", match: "prefix" },
-      { label: "새 활동사진", href: "/admin/gallery/photos/new", match: "new-activity" },
-      { label: "새 언론 자료", href: "/admin/gallery/photos/new?kind=press", match: "new-press" },
+      { label: "활동사진 목록", href: "/admin/gallery/photos", match: "prefix" },
+      { label: "새 활동사진", href: "/admin/gallery/photos/new", match: "exact" },
+      { label: "새 언론 자료", href: "/admin/gallery/press/new", match: "exact" },
     ],
   },
 ];
 
-function isNavItemActive(
-  pathname: string,
-  searchParams: URLSearchParams,
-  item: NavLeaf,
-): boolean {
-  const [pathOnly, query] = item.href.split("?");
+function isNavItemActive(pathname: string, _searchParams: URLSearchParams, item: NavLeaf): boolean {
+  const [pathOnly] = item.href.split("?");
   if (item.match === "exact") {
     return pathname === pathOnly;
   }
   if (item.match === "prefix") {
     return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
-  }
-  if (item.match === "new-activity") {
-    return pathname === "/admin/gallery/photos/new" && searchParams.get("kind") !== "press";
-  }
-  if (item.match === "new-press") {
-    return pathname === "/admin/gallery/photos/new" && searchParams.get("kind") === "press";
   }
   return pathname === pathOnly;
 }

@@ -1,40 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { requireAdminUser } from "../../../../lib/require-admin";
 import { logoutAdmin } from "../../../actions";
 import { createGalleryPhotoFromAdmin } from "../../../photo-actions";
-import { GalleryPhotoImageField } from "./gallery-photo-image-field";
 
 export const metadata: Metadata = {
-  title: "새 갤러리 사진",
-  description: "관리자용 갤러리 사진 등록",
+  title: "새 언론 자료",
+  description: "관리자용 언론 보도 갤러리 등록",
 };
 
-/** 이 경로는 활동사진(activity) 등록만 담당 — DB gallery_kind 와 일치 */
-const GALLERY_CATEGORY_ACTIVITY = "activity" as const;
+/** 언론 카드는 gallery_kind = press 로 저장 */
+const GALLERY_CATEGORY_PRESS = "press" as const;
 
 const noticeMap: Record<string, string> = {
-  "error=invalid": "필수 항목을 확인해 주세요. (제목·이미지)",
-  "error=too_many": "한 번에 올릴 수 있는 사진은 최대 30장입니다.",
-  "error=upload": "이미지 업로드에 실패했습니다. (jpg/png/webp/avif/gif · 장당 8MB 이하)",
+  "error=invalid": "필수 항목을 확인해 주세요.",
+  "error=press_url": "기사 링크를 http 또는 https 주소로 입력해 주세요.",
+  "error=upload": "이미지 업로드에 실패했습니다.",
   "error=insert": "등록 중 오류가 발생했습니다.",
 };
 
-export default async function AdminGalleryPhotoNewPage({
+export default async function AdminGalleryPressNewPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await requireAdminUser();
   const params = await searchParams;
-
-  // 예전 ?kind=press 링크 호환 — 언론 등록 전용 경로로 이동
-  const kindParam = params.kind;
-  const kindStr = Array.isArray(kindParam) ? kindParam[0] : kindParam;
-  if (kindStr === "press") {
-    redirect("/admin/gallery/press/new");
-  }
 
   const noticeMessage = Object.entries(params)
     .map(([key, value]) => {
@@ -51,10 +42,10 @@ export default async function AdminGalleryPhotoNewPage({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-[var(--font-display)] text-[11px] uppercase tracking-[0.3em] text-[var(--color-terracotta)]">
-              ─ New photo
+              ─ New press
             </p>
             <h1 className="mt-2 font-[var(--font-serif)] text-3xl font-medium text-[var(--color-ink)] md:text-4xl">
-              새 활동사진 등록
+              새 언론 자료 등록 (기사 링크)
             </h1>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
@@ -80,18 +71,33 @@ export default async function AdminGalleryPhotoNewPage({
 
         <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-6">
           <form action={createGalleryPhotoFromAdmin} className="grid gap-4">
-            {/* 활동사진 전용 — 폼 변조 시에도 서버에서 다중 업로드 분기는 activity 만 허용 */}
-            <input type="hidden" name="gallery_kind" value={GALLERY_CATEGORY_ACTIVITY} />
+            <input type="hidden" name="gallery_kind" value={GALLERY_CATEGORY_PRESS} />
 
             <label className="grid gap-1 text-sm">
-              <span className="text-[var(--color-ink-soft)]">제목 *</span>
+              <span className="text-[var(--color-ink-soft)]">기사 링크 *</span>
+              <input
+                type="url"
+                name="article_url"
+                required
+                inputMode="url"
+                autoComplete="url"
+                maxLength={2000}
+                className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
+                placeholder="https:// … 보도가 나온 기사 주소"
+              />
+              <span className="text-xs text-[var(--color-muted)]">
+                등록 시 기사 페이지에서 대표 이미지(OG)를 가져와 썸네일로 저장합니다. 가져오기에 실패하면 기본 이미지가 사용됩니다.
+              </span>
+            </label>
+
+            <label className="grid gap-1 text-sm">
+              <span className="text-[var(--color-ink-soft)]">표시 제목 (선택)</span>
               <input
                 type="text"
                 name="title"
-                required
                 maxLength={200}
                 className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
-                placeholder="예: 2026 봄 한국어 교실 수료식"
+                placeholder="비우면 기사 미리보기 제목(og:title)을 사용합니다"
               />
             </label>
 
@@ -102,7 +108,7 @@ export default async function AdminGalleryPhotoNewPage({
                 rows={4}
                 maxLength={2000}
                 className="border border-[var(--color-line)] bg-white px-3 py-2 text-[var(--color-ink)] outline-none focus:border-[var(--color-terracotta)]"
-                placeholder="사진에 대한 간단한 설명 (선택)"
+                placeholder="카드에 함께 보여줄 짧은 메모 (선택)"
               />
             </label>
 
@@ -130,19 +136,9 @@ export default async function AdminGalleryPhotoNewPage({
               </label>
             </div>
 
-            <div className="grid gap-1 text-sm">
-              <span className="text-[var(--color-ink-soft)]">
-                이미지 파일 * (여러 장 선택 가능)
-                <span className="ml-1 text-xs text-[var(--color-muted)]">
-                  jpg/png/webp/avif/gif · 장당 최대 8MB · 한 번에 최대 30장
-                </span>
-              </span>
-              <GalleryPhotoImageField />
-            </div>
-
             <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--color-ink-soft)]">
               <input type="checkbox" name="is_published" defaultChecked className="size-4 accent-[var(--color-terracotta)]" />
-              공개 (방문자 활동사진 페이지에 표시)
+              공개 (방문자 언론 페이지에 표시)
             </label>
 
             <div className="flex flex-wrap gap-3">

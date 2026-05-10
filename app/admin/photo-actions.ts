@@ -11,6 +11,8 @@ import {
 import { requireAdminUser } from "../lib/require-admin";
 
 const STORAGE_BUCKET = "gallery-photos";
+/** 활동사진(activity) 업로드 전용 — 버킷 루트와 언론 OG(월별) 등과 경로 분리 */
+const ACTIVITY_PHOTOS_STORAGE_FOLDER = "fcokj-activities";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_GALLERY_IMAGES_PER_SUBMIT = 30;
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"]);
@@ -78,17 +80,17 @@ function parseGalleryKindFromForm(formData: FormData): GalleryKind {
   return raw === "press" ? "press" : "activity";
 }
 
-/** 등록 폼 오류 시 kind=press 쿼리 유지 */
+/** 등록 폼 오류 시 활동/언론 각각의 신규 페이지로 되돌림 */
 function buildAdminNewGalleryUrl(kind: GalleryKind, extra?: Record<string, string>): string {
   const search = new URLSearchParams();
-  if (kind === "press") search.set("kind", "press");
   if (extra) {
     for (const [key, value] of Object.entries(extra)) {
       search.set(key, value);
     }
   }
+  const basePath = kind === "press" ? "/admin/gallery/press/new" : "/admin/gallery/photos/new";
   const queryString = search.toString();
-  return queryString.length > 0 ? `/admin/gallery/photos/new?${queryString}` : "/admin/gallery/photos/new";
+  return queryString.length > 0 ? `${basePath}?${queryString}` : basePath;
 }
 
 /** sort_order 정수 파싱 (실패 시 0) */
@@ -115,10 +117,17 @@ function getExtensionFromFile(file: File): string {
   return name.slice(dotIndex + 1).toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
 }
 
+/** Storage 객체 경로에 쓸 폴더명만 허용 (경로 조작·빈 세그먼트 방지) */
+function isSafeGalleryStorageSubfolder(folderName: string): boolean {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(folderName) && folderName.length <= 80;
+}
+
 /** Storage 에 이미지 업로드 후 public URL/경로 반환 */
 async function uploadPhotoToStorage(
   supabaseAdmin: Awaited<ReturnType<typeof requireAdminUser>>["supabaseAdmin"],
   imageFile: File,
+  /** 예: 활동사진 → "activity". null 이면 기존과 같이 버킷 루트 바로 아래 YYYYMM */
+  storageSubfolder: string | null = null,
 ): Promise<{ imageUrl: string; imagePath: string } | null> {
   if (imageFile.size === 0 || imageFile.size > MAX_IMAGE_BYTES) {
     return null;
@@ -131,7 +140,9 @@ async function uploadPhotoToStorage(
   const now = new Date();
   const yyyyMm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
   const uniqueSuffix = `${now.getTime()}-${Math.random().toString(36).slice(2, 10)}`;
-  const imagePath = `${yyyyMm}/${uniqueSuffix}.${ext}`;
+  const prefix =
+    storageSubfolder && isSafeGalleryStorageSubfolder(storageSubfolder) ? `${storageSubfolder}/` : "";
+  const imagePath = `${prefix}${yyyyMm}/${uniqueSuffix}.${ext}`;
 
   const arrayBuffer = await imageFile.arrayBuffer();
   const fileBytes = new Uint8Array(arrayBuffer);
@@ -145,6 +156,8 @@ async function uploadPhotoToStorage(
     });
 
   if (uploadError) {
+    // 브라우저에는 일반 메시지만 — 원인은 서버 로그(권한·용량·경로 등)로 확인
+    console.error("[gallery-photos upload]", STORAGE_BUCKET, imagePath, uploadError.message, uploadError);
     return null;
   }
 
@@ -279,6 +292,8 @@ export async function createGalleryPhotoFromAdmin(formData: FormData) {
     });
 
     if (insertError) {
+      // 마이그레이션 후 시퀀스 불일치 등 — Vercel/로컬 서버 로그에서 원인 확인용
+      console.error("[gallery_photos press insert]", insertError.message, insertError.code, insertError.details);
       if (imagePath) {
         await removePhotoFromStorage(supabaseAdmin, imagePath);
       }
@@ -305,7 +320,7 @@ export async function createGalleryPhotoFromAdmin(formData: FormData) {
   const uploadedList: { imageUrl: string; imagePath: string }[] = [];
 
   for (const file of imageFiles) {
-    const uploaded = await uploadPhotoToStorage(supabaseAdmin, file);
+    const uploaded = await uploadPhotoToStorage(supabaseAdmin, file, ACTIVITY_PHOTOS_STORAGE_FOLDER);
     if (!uploaded) {
       for (const u of uploadedList) {
         await removePhotoFromStorage(supabaseAdmin, u.imagePath);
@@ -316,6 +331,7 @@ export async function createGalleryPhotoFromAdmin(formData: FormData) {
   }
 
   const total = imageFiles.length;
+  // 다중 이미지 등록은 활동사진(activity) 전용 — hidden 필드 변조 대비
   const rows = uploadedList.map((uploaded, index) => ({
     title: buildGalleryPhotoTitleForBulk(title, index, total),
     description,
@@ -324,13 +340,14 @@ export async function createGalleryPhotoFromAdmin(formData: FormData) {
     taken_at: takenAt,
     sort_order: sortOrder,
     is_published: isPublished,
-    gallery_kind: galleryKind,
+    gallery_kind: "activity",
     author_id: userId,
   }));
 
   const { error } = await supabaseAdmin.from("gallery_photos").insert(rows);
 
   if (error) {
+    console.error("[gallery_photos activity insert]", error.message, error.code, error.details);
     for (const u of uploadedList) {
       await removePhotoFromStorage(supabaseAdmin, u.imagePath);
     }
@@ -402,7 +419,8 @@ export async function updateGalleryPhotoFromAdmin(formData: FormData) {
   let newUploadedPathForRollback: string | null = null;
 
   if (imageFile instanceof File && imageFile.size > 0) {
-    const uploaded = await uploadPhotoToStorage(supabaseAdmin, imageFile);
+    const activitySubfolder = galleryKind === "activity" ? ACTIVITY_PHOTOS_STORAGE_FOLDER : null;
+    const uploaded = await uploadPhotoToStorage(supabaseAdmin, imageFile, activitySubfolder);
     if (!uploaded) {
       redirect(`/admin/gallery/photos/${photoId}/edit?error=upload`);
     }

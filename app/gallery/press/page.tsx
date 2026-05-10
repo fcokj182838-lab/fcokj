@@ -184,7 +184,7 @@ export default async function PressGalleryPage({
               관리자에서 언론 보도 자료를 등록하면 이곳에 표시됩니다.
             </p>
             <Link
-              href="/admin/gallery/photos/new?kind=press"
+              href="/admin/gallery/press/new"
               className="mt-6 inline-block text-xs text-[var(--color-terracotta)] underline"
             >
               언론 자료 등록 (관리자)

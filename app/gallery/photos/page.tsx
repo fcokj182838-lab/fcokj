@@ -91,12 +91,13 @@ async function getPublishedPhotosPage(pageFromUrl: number): Promise<FetchResult>
   const rangeFrom = (currentPage - 1) * PAGE_SIZE;
   const rangeTo = rangeFrom + PAGE_SIZE - 1;
 
+  // 정렬은 등록 시점(created_at) 내림차순 단독 — sort_order 는 사용하지 않음
+  // (마이그레이션 데이터의 sort_order 가 epoch 값이라 새 등록물이 뒤로 밀리는 문제 회피)
   const { data, error } = await supabase
     .from("gallery_photos")
     .select("id, title, description, image_url, taken_at, created_at")
     .eq("is_published", true)
     .eq("gallery_kind", "activity")
-    .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false })
     .range(rangeFrom, rangeTo);
 

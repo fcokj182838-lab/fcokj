@@ -64,10 +64,11 @@ export default async function AdminGalleryPhotosListPage({
   const { supabaseAdmin } = await requireAdminUser();
   const params = await searchParams;
 
+  // 공개 페이지(/gallery/photos)와 동일하게 등록 시점(created_at) 내림차순 단독 정렬
+  // — 마이그레이션 데이터의 sort_order 가 epoch 값이라 새 등록물이 뒤로 밀리는 문제 회피
   const { data, error } = await supabaseAdmin
     .from("gallery_photos")
     .select("id, title, image_url, taken_at, sort_order, is_published, created_at, gallery_kind")
-    .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false });
 
   const photos = (error ? [] : data ?? []) as GalleryPhotoRow[];
@@ -97,7 +98,7 @@ export default async function AdminGalleryPhotosListPage({
               새 활동사진
             </Link>
             <Link
-              href="/admin/gallery/photos/new?kind=press"
+              href="/admin/gallery/press/new"
               className="border border-[var(--color-terracotta)] bg-transparent px-4 py-2 text-sm font-semibold text-[var(--color-terracotta)]"
             >
               새 언론 자료

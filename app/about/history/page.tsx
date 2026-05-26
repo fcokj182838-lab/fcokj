@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 // 법인소개 - 연혁 페이지
@@ -536,11 +535,13 @@ function EventCard({ event }: { event: HistoryEvent }) {
         {/* 이벤트 참조 이미지 (옵션) */}
         {event.imageSrc && (
           <div className="mt-5 w-[200px] overflow-hidden border border-[var(--color-line)] bg-[var(--color-ivory)] p-2">
-            <Image
+            <img
               src={event.imageSrc}
               alt={event.imageAlt ?? `${event.title} 관련 이미지`}
               width={200}
               height={260}
+              loading="lazy"
+              decoding="async"
               className="h-auto w-full object-contain"
             />
           </div>
@@ -577,13 +578,14 @@ function GovernorAwardSection() {
 
           <div className="lg:col-span-7">
             <figure className="overflow-hidden border border-[var(--color-line)] bg-[var(--color-cream)] p-4 shadow-[0_24px_40px_-24px_rgba(26,35,50,0.2)] sm:p-5">
-              <Image
+              <img
                 src="/images/sang.png"
                 alt="2025년 경상북도 도지사 표창장"
                 width={1400}
                 height={1800}
+                loading="lazy"
+                decoding="async"
                 className="h-auto w-full object-contain"
-                priority={false}
               />
               <figcaption className="mt-4 border-t border-[var(--color-line)] pt-4 text-[13px] text-[var(--color-ink-soft)]">
                 2025년 9월 13일 수여, 경상북도 도지사 표창

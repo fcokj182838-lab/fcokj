@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseAdminClient } from "./lib/supabase/server";
 import { SITE_INFO } from "./lib/site-config";
@@ -424,12 +423,12 @@ async function ActivitiesSection() {
                   style={{ animationDelay: `${index * 80}ms` }}
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-[var(--color-ivory)] transition-transform duration-700 group-hover:-translate-y-2">
-                    <Image
+                    <img
                       src={photo.image_url}
                       alt={photo.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                     />
                     {/* 이미지 위 텍스트 대비용 그라데이션 */}
                     <div

@@ -1,14 +1,5 @@
 import type { NextConfig } from "next";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
-const supabaseHostname = (() => {
-  try {
-    return supabaseUrl ? new URL(supabaseUrl).hostname : undefined;
-  } catch {
-    return undefined;
-  }
-})();
-
 /** 개발 전용 — IP로 접속 시 Next가 /_next/* POST 를 잘라 403(비 Flight)을 주면 "unexpected response" 가 남 (LAN은 기본 패턴 + env 병합) */
 const isNextDev = process.env.NODE_ENV === "development";
 const extraDevOriginsFromEnv = isNextDev && process.env.NEXT_DEV_ALLOWED_ORIGINS?.trim().length
@@ -35,17 +26,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "256mb",
     },
-  },
-  images: {
-    remotePatterns: supabaseHostname
-      ? [
-          {
-            protocol: "https",
-            hostname: supabaseHostname,
-            pathname: "/storage/v1/object/public/**",
-          },
-        ]
-      : [],
   },
 };
 

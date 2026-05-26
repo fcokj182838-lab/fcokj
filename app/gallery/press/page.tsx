@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseAdminClient } from "../../lib/supabase/server";
 
@@ -203,12 +202,12 @@ export default async function PressGalleryPage({
                 const cardInner = (
                   <>
                     <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-ivory)]">
-                      <Image
+                      <img
                         src={item.image_url}
                         alt={item.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                       />
                     </div>
 

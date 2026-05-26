@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseAdminClient } from "../../../lib/supabase/server";
@@ -141,13 +140,11 @@ export default async function GalleryPhotoDetailPage({ params, searchParams }: P
 
         <article className="border border-[var(--color-line)] bg-[var(--color-cream)] p-4 md:p-8">
           <div className="relative mx-auto flex min-h-[200px] w-full max-w-4xl items-center justify-center bg-[var(--color-ivory)]">
-            <Image
+            <img
               src={photo.image_url}
               alt={photo.title}
-              width={1600}
-              height={1200}
-              priority
-              sizes="(max-width: 1024px) 100vw, 896px"
+              loading="eager"
+              decoding="async"
               className="h-auto max-h-[min(85vh,900px)] w-full object-contain"
             />
           </div>

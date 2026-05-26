@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { requireAdminUser } from "../../../lib/require-admin";
 import { logoutAdmin } from "../../actions";
 import { DeleteGalleryPhotoButton } from "./delete-photo-button";
@@ -141,12 +140,12 @@ export default async function AdminGalleryPhotosListPage({
                   href={`/admin/gallery/photos/${photo.id}/edit`}
                   className="relative block aspect-[4/3] overflow-hidden bg-[var(--color-ivory)]"
                 >
-                  <Image
+                  <img
                     src={photo.image_url}
                     alt={photo.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
                 </Link>
                 <div className="flex flex-1 flex-col gap-3 p-4">

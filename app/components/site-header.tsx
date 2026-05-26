@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -52,13 +51,13 @@ export function SiteHeader() {
             aria-label={`${SITE_INFO.name} 홈으로 이동`}
             className="group flex items-center transition-opacity duration-300 hover:opacity-80"
           >
-            <Image
+            <img
               src="/logo.png"
               alt={SITE_INFO.name}
               width={1024}
               height={256}
-              priority
-              sizes="(max-width: 640px) 160px, 200px"
+              loading="eager"
+              decoding="async"
               className="h-10 w-auto sm:h-11"
             />
           </Link>

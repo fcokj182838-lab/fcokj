@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "../../../../../lib/require-admin";
 import { logoutAdmin } from "../../../../actions";
@@ -100,12 +99,12 @@ export default async function AdminGalleryPhotoEditPage({ params, searchParams }
           <div className="mb-6">
             <p className="mb-2 text-xs text-[var(--color-ink-soft)]">현재 이미지</p>
             <div className="relative mx-auto aspect-[4/3] w-full max-w-[480px] overflow-hidden border border-[var(--color-line)] bg-[var(--color-ivory)]">
-              <Image
+              <img
                 src={photo.image_url}
                 alt={photo.title}
-                fill
-                sizes="(max-width: 640px) 100vw, 480px"
-                className="object-cover"
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
               />
             </div>
           </div>
